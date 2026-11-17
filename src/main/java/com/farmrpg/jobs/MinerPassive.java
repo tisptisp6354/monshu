@@ -3,6 +3,8 @@ package com.farmrpg.jobs;
 import java.util.Map;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -42,9 +44,18 @@ public final class MinerPassive {
             var pos = event.getPos();
             event.getDrops().add(new ItemEntity(event.getLevel(), pos.getX() + 0.5, pos.getY() + 0.5,
                     pos.getZ() + 0.5, new ItemStack(reward, 1)));
-            player.sendSystemMessage(Component.literal("[광부 패시브] ")
-                    .append(Component.translatable(reward.getDescriptionId()))
-                    .append(" 1개 추가 획득!"));
+            int[] colors = {0xFF5555, 0xFFAA00, 0xFFFF55, 0x55FF55, 0x55FFFF, 0x5555FF, 0xFF55FF};
+            int[] letters = "⛏ [광맥의 축복!]".codePoints().toArray();
+            MutableComponent message = Component.empty();
+            for (int i = 0; i < letters.length; i++) {
+                final int color = colors[i % colors.length];
+                message.append(Component.literal(new String(Character.toChars(letters[i])))
+                        .withStyle(style -> style.withColor(color)));
+            }
+            message.append(Component.literal(" "));
+            message.append(Component.translatable(reward.getDescriptionId()).withStyle(ChatFormatting.YELLOW));
+            message.append(Component.literal(" +1").withStyle(ChatFormatting.WHITE));
+            player.sendSystemMessage(message);
         }
     }
 
