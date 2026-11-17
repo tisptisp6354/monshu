@@ -2,6 +2,7 @@ package com.farmrpg.jobs;
 
 import java.util.Map;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -41,6 +42,9 @@ public final class MinerPassive {
             var pos = event.getPos();
             event.getDrops().add(new ItemEntity(event.getLevel(), pos.getX() + 0.5, pos.getY() + 0.5,
                     pos.getZ() + 0.5, new ItemStack(reward, 1)));
+            player.sendSystemMessage(Component.literal("[광부 패시브] ")
+                    .append(Component.translatable(reward.getDescriptionId()))
+                    .append(" 1개 추가 획득!"));
         }
     }
 
