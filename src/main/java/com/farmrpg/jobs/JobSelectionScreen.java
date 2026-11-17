@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class JobSelectionScreen extends Screen {
 
@@ -181,8 +182,13 @@ public class JobSelectionScreen extends Screen {
     }
 
     private void confirmJob() {
-        // 아직 서버에 직업을 저장하지 않습니다.
-        // 다음 단계에서 실제 직업 선택 기능을 연결합니다.
+        String jobId = JobData.idFromName(selectedJob);
+        if (jobId == null || this.minecraft == null || this.minecraft.player == null) {
+            return;
+        }
+        PacketDistributor.sendToServer(new JobNetworking.SelectJob(jobId));
+        // The server sends the outcome as a chat message; no local success is assumed.
+        this.onClose();
     }
     @Override
     public void renderBackground(
