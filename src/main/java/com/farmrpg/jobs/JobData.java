@@ -34,6 +34,11 @@ public final class JobData {
     public static String combat(ServerPlayer player) { return player.getData(COMBAT); }
     public static String life(ServerPlayer player) { return player.getData(LIFE); }
 
+    /** Checks the server-side life-job slot; combat jobs do not affect this result. */
+    public static boolean isMiner(ServerPlayer player) {
+        return "miner".equals(life(player));
+    }
+
     public enum Result { SELECTED, ALREADY_SELECTED, INVALID }
     public static Result select(ServerPlayer player, String id) {
         Supplier<AttachmentType<String>> slot;
