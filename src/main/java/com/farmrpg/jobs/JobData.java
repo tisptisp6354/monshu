@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -35,8 +36,12 @@ public final class JobData {
     public static String life(ServerPlayer player) { return player.getData(LIFE); }
 
     /** Checks the server-side life-job slot; combat jobs do not affect this result. */
-    public static boolean isMiner(ServerPlayer player) {
-        return "miner".equals(life(player));
+    public static boolean isMiner(Player player) {
+        return "miner".equals(player.getData(LIFE));
+    }
+
+    static void syncClientLife(Player player, String job) {
+        if (player.level().isClientSide()) player.setData(LIFE, job);
     }
 
     public enum Result { SELECTED, ALREADY_SELECTED, INVALID }
