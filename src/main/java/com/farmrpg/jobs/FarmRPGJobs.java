@@ -18,6 +18,10 @@ public class FarmRPGJobs {
         JobData.ATTACHMENTS.register(modBus);
         modBus.addListener(JobNetworking::register);
         NeoForge.EVENT_BUS.addListener(JobCommands::register);
+        NeoForge.EVENT_BUS.addListener(MinerPassive::onDrops);
+        NeoForge.EVENT_BUS.addListener(MinerPassive::onBreakSpeed);
+        NeoForge.EVENT_BUS.addListener(MinerPassive::onLogin);
+        NeoForge.EVENT_BUS.addListener(MinerPassive::onRespawn);
         LOGGER.info("Farm RPG Jobs mod loaded!");
     }
 }
