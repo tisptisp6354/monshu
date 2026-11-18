@@ -15,6 +15,8 @@ public class FarmRPGJobs {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public FarmRPGJobs(IEventBus modBus) {
+        ModItems.ITEMS.register(modBus);
+        modBus.addListener(ModItems::addCreativeTabItems);
         JobData.ATTACHMENTS.register(modBus);
         modBus.addListener(JobNetworking::register);
         NeoForge.EVENT_BUS.addListener(JobCommands::register);
