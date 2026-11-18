@@ -7,7 +7,7 @@
         { "condition": "minecraft:survives_explosion" }
       ],
       "entries": [
-        { "type": "minecraft:item", "name": "farmrpgjobs:moonlight_herb" }
+        { "type": "minecraft:item", "name": "farmrpgjobs:moonlight_herb_item" }
       ],
       "rolls": 1.0
     }

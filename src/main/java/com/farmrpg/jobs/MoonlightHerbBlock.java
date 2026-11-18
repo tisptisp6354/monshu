@@ -2,7 +2,10 @@ package com.farmrpg.jobs;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -21,6 +24,20 @@ public class MoonlightHerbBlock extends BushBlock {
     @Override
     public MapCodec<MoonlightHerbBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (random.nextInt(3) != 0) {
+            return;
+        }
+
+        level.addParticle(
+                random.nextBoolean() ? ParticleTypes.GLOW : ParticleTypes.END_ROD,
+                pos.getX() + 0.2 + random.nextDouble() * 0.6,
+                pos.getY() + 0.35 + random.nextDouble() * 0.7,
+                pos.getZ() + 0.2 + random.nextDouble() * 0.6,
+                0.0, 0.005, 0.0);
     }
 
     @Override
