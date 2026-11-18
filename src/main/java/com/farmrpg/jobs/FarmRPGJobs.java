@@ -15,6 +15,7 @@ public class FarmRPGJobs {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public FarmRPGJobs(IEventBus modBus) {
+        ModBlocks.BLOCKS.register(modBus);
         ModItems.ITEMS.register(modBus);
         modBus.addListener(ModItems::addCreativeTabItems);
         JobData.ATTACHMENTS.register(modBus);
