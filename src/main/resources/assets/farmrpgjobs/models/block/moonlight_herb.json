@@ -2,6 +2,6 @@
   "parent": "minecraft:block/cross",
   "render_type": "minecraft:cutout",
   "textures": {
-    "cross": "farmrpgjobs:block/moonlight_herb_plant"
+    "cross": "farmrpgjobs:block/moonlight_herb_plant_v2"
   }
 }

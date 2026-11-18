@@ -4,12 +4,17 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -24,6 +29,26 @@ public class MoonlightHerbBlock extends BushBlock {
     @Override
     public MapCodec<MoonlightHerbBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!level.getBlockState(pos).is(this) || !level.removeBlock(pos, false)) {
+            return InteractionResult.FAIL;
+        }
+
+        ItemStack herb = new ItemStack(ModItems.MOONLIGHT_HERB_ITEM.get());
+        Inventory inventory = player.getInventory();
+        if (inventory.getSlotWithRemainingSpace(herb) >= 0 || inventory.getFreeSlot() >= 0) {
+            inventory.add(herb);
+        }
+        if (!herb.isEmpty()) {
+            player.drop(herb, false);
+        }
+        return InteractionResult.CONSUME;
     }
 
     @Override
