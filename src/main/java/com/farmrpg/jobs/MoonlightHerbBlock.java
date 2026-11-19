@@ -3,6 +3,8 @@ package com.farmrpg.jobs;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
@@ -47,6 +49,9 @@ public class MoonlightHerbBlock extends BushBlock {
         }
         if (!herb.isEmpty()) {
             player.drop(herb, false);
+        }
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            GatheringEffects.playHerbHarvest(serverPlayer, serverLevel, pos);
         }
         return InteractionResult.CONSUME;
     }
