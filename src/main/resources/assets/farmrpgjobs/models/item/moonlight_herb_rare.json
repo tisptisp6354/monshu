@@ -1,4 +1,14 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "farmrpgjobs:item/moonlight_herb_rare" }
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:item/generated",
+    "textures": { "layer0": "farmrpgjobs:item/moonlight_herb_rare_clear" }
+  },
+  "perspectives": {
+    "firstperson_righthand": { "parent": "farmrpgjobs:item/moonlight_herb_hand" },
+    "firstperson_lefthand": { "parent": "farmrpgjobs:item/moonlight_herb_hand" },
+    "thirdperson_righthand": { "parent": "farmrpgjobs:item/moonlight_herb_hand" },
+    "thirdperson_lefthand": { "parent": "farmrpgjobs:item/moonlight_herb_hand" }
+  }
 }
