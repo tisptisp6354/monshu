@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "farmrpgjobs:block/moonlight_herb_plant_v2"
+    "layer0": "farmrpgjobs:item/moonlight_herb_hand"
   }
 }
