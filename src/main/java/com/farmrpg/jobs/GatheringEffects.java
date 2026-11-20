@@ -33,6 +33,6 @@ public final class GatheringEffects {
         level.sendParticles(player, ParticleTypes.END_ROD, false,
                 pos.getX() + 0.5, pos.getY() + 0.6, pos.getZ() + 0.5,
                 3, 0.16, 0.16, 0.16, 0.01);
-        player.playNotifySound(SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.PLAYERS, 1.0f, 1.0f);
+        player.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 1.0f, 1.0f);
     }
 }
