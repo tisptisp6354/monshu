@@ -1,6 +1,11 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "farmrpgjobs:item/moonlight_herb_item_v3"
-  }
+    "layer0": "farmrpgjobs:item/moonlight_herb_common"
+  },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "farmrpgjobs:item/moonlight_herb_advanced" },
+    { "predicate": { "custom_model_data": 2 }, "model": "farmrpgjobs:item/moonlight_herb_rare" },
+    { "predicate": { "custom_model_data": 3 }, "model": "farmrpgjobs:item/moonlight_herb_heroic" }
+  ]
 }

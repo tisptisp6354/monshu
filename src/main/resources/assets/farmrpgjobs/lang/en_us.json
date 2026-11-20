@@ -2,5 +2,10 @@
   "key.farmrpgjobs.open_job_screen": "Open job selection",
   "key.categories.farmrpgjobs": "Farm RPG Jobs",
   "item.farmrpgjobs.moonlight_herb_item": "Moonlight Herb",
-  "block.farmrpgjobs.moonlight_herb": "Moonlight Herb"
+  "block.farmrpgjobs.moonlight_herb": "Moonlight Herb",
+  "tooltip.farmrpgjobs.herb_grade": "Grade: %s",
+  "tooltip.farmrpgjobs.herb_grade.common": "Common",
+  "tooltip.farmrpgjobs.herb_grade.advanced": "Advanced",
+  "tooltip.farmrpgjobs.herb_grade.rare": "Rare",
+  "tooltip.farmrpgjobs.herb_grade.heroic": "Heroic"
 }

@@ -2,6 +2,7 @@ package com.farmrpg.jobs;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,6 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -38,20 +40,31 @@ public class MoonlightHerbBlock extends BushBlock {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        if (!level.getBlockState(pos).is(this) || !level.removeBlock(pos, false)) {
+        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer)
+                || !level.getBlockState(pos).is(this) || !level.removeBlock(pos, false)) {
             return InteractionResult.FAIL;
         }
 
-        ItemStack herb = new ItemStack(ModItems.MOONLIGHT_HERB_ITEM.get());
+        boolean herbalist = "herbalist".equals(JobData.life(serverPlayer));
+        RandomSource random = serverLevel.getRandom();
+        HerbGrade grade = HerbGrade.fromRoll(herbalist, random.nextInt(100));
+        boolean bonus = herbalist && HerbGrade.grantsBonus(random.nextInt(100));
         Inventory inventory = player.getInventory();
-        if (inventory.getSlotWithRemainingSpace(herb) >= 0 || inventory.getFreeSlot() >= 0) {
-            inventory.add(herb);
+        for (int i = 0; i < (bonus ? 2 : 1); i++) {
+            ItemStack herb = new ItemStack(ModItems.MOONLIGHT_HERB_ITEM.get());
+            if (grade.modelId() != 0) {
+                herb.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(grade.modelId()));
+            }
+            if (inventory.getSlotWithRemainingSpace(herb) >= 0 || inventory.getFreeSlot() >= 0) {
+                inventory.add(herb);
+            }
+            if (!herb.isEmpty()) {
+                player.drop(herb, false);
+            }
         }
-        if (!herb.isEmpty()) {
-            player.drop(herb, false);
-        }
-        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
-            GatheringEffects.playHerbHarvest(serverPlayer, serverLevel, pos);
+        GatheringEffects.playHerbHarvest(serverPlayer, serverLevel, pos);
+        if (bonus) {
+            GatheringEffects.playHerbalistBonus(serverPlayer, serverLevel, pos);
         }
         return InteractionResult.CONSUME;
     }

@@ -2,5 +2,10 @@
   "key.farmrpgjobs.open_job_screen": "직업 선택 화면 열기",
   "key.categories.farmrpgjobs": "Farm RPG 직업",
   "item.farmrpgjobs.moonlight_herb_item": "달빛초",
-  "block.farmrpgjobs.moonlight_herb": "달빛초"
+  "block.farmrpgjobs.moonlight_herb": "달빛초",
+  "tooltip.farmrpgjobs.herb_grade": "등급: %s",
+  "tooltip.farmrpgjobs.herb_grade.common": "일반",
+  "tooltip.farmrpgjobs.herb_grade.advanced": "고급",
+  "tooltip.farmrpgjobs.herb_grade.rare": "희귀",
+  "tooltip.farmrpgjobs.herb_grade.heroic": "영웅"
 }

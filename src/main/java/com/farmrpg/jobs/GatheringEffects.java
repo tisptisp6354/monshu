@@ -35,4 +35,11 @@ public final class GatheringEffects {
                 3, 0.16, 0.16, 0.16, 0.01);
         player.playNotifySound(SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1.0f, 1.0f);
     }
+
+    /** The normal harvest already plays the chime; add gold only for the extra herb. */
+    public static void playHerbalistBonus(ServerPlayer player, ServerLevel level, BlockPos pos) {
+        level.sendParticles(player, GOLD_SPARKLE, false,
+                pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                8, 0.22, 0.22, 0.22, 0.01);
+    }
 }
