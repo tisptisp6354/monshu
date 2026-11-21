@@ -15,9 +15,9 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
 
-/** Attempts to place up to five herbs of this type inside the current chunk. */
+/** Attempts to place up to three herbs of this type inside the current chunk. */
 public final class HerbPatchFeature extends Feature<SimpleBlockConfiguration> {
-    private static final int TARGET_PER_CHUNK = 5;
+    private static final int TARGET_PER_CHUNK = 3;
     private static final int SURFACE_ATTEMPTS = 256;
     private static final int CAVE_ATTEMPTS = 256;
     private static final int MAX_SURFACE_SCAN = 24;
