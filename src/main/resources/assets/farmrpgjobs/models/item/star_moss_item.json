@@ -1,0 +1,45 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:item/generated",
+    "textures": {
+      "layer0": "farmrpgjobs:item/herb_grade_common",
+      "layer1": "farmrpgjobs:item/star_moss_center"
+    }
+  },
+  "perspectives": {
+    "firstperson_righthand": {
+      "parent": "farmrpgjobs:item/star_moss_hand"
+    },
+    "firstperson_lefthand": {
+      "parent": "farmrpgjobs:item/star_moss_hand"
+    },
+    "thirdperson_righthand": {
+      "parent": "farmrpgjobs:item/star_moss_hand"
+    },
+    "thirdperson_lefthand": {
+      "parent": "farmrpgjobs:item/star_moss_hand"
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "farmrpgjobs:item/star_moss_advanced"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "farmrpgjobs:item/star_moss_rare"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "farmrpgjobs:item/star_moss_heroic"
+    }
+  ]
+}

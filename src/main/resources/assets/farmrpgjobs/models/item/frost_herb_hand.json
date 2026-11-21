@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "farmrpgjobs:block/frost_herb_plant"
+  }
+}

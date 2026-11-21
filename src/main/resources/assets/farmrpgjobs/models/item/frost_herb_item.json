@@ -1,0 +1,45 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:item/generated",
+    "textures": {
+      "layer0": "farmrpgjobs:item/herb_grade_common",
+      "layer1": "farmrpgjobs:item/frost_herb_center"
+    }
+  },
+  "perspectives": {
+    "firstperson_righthand": {
+      "parent": "farmrpgjobs:item/frost_herb_hand"
+    },
+    "firstperson_lefthand": {
+      "parent": "farmrpgjobs:item/frost_herb_hand"
+    },
+    "thirdperson_righthand": {
+      "parent": "farmrpgjobs:item/frost_herb_hand"
+    },
+    "thirdperson_lefthand": {
+      "parent": "farmrpgjobs:item/frost_herb_hand"
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "farmrpgjobs:item/frost_herb_advanced"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "farmrpgjobs:item/frost_herb_rare"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "farmrpgjobs:item/frost_herb_heroic"
+    }
+  ]
+}

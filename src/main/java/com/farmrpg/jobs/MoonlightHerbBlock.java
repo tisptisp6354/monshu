@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,6 +16,7 @@ import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,6 +38,15 @@ public class MoonlightHerbBlock extends BushBlock {
     }
 
     @Override
+    protected boolean mayPlaceOn(BlockState ground, BlockGetter level, BlockPos pos) {
+        return super.mayPlaceOn(ground, level, pos)
+                || ground.is(BlockTags.SAND)
+                || ground.is(BlockTags.BASE_STONE_OVERWORLD)
+                || ground.is(Blocks.SNOW_BLOCK)
+                || ground.is(Blocks.MOSS_BLOCK);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
@@ -51,7 +62,7 @@ public class MoonlightHerbBlock extends BushBlock {
         boolean bonus = herbalist && HerbGrade.grantsBonus(random.nextInt(100));
         Inventory inventory = player.getInventory();
         for (int i = 0; i < (bonus ? 2 : 1); i++) {
-            ItemStack herb = new ItemStack(ModItems.MOONLIGHT_HERB_ITEM.get());
+            ItemStack herb = new ItemStack(this.asItem());
             if (grade.modelId() != 0) {
                 herb.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(grade.modelId()));
             }

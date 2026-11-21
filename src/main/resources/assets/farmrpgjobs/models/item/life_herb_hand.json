@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "farmrpgjobs:block/life_herb_plant"
+  }
+}

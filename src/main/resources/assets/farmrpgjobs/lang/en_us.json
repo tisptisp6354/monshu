@@ -7,5 +7,19 @@
   "tooltip.farmrpgjobs.herb_grade.common": "Common",
   "tooltip.farmrpgjobs.herb_grade.advanced": "Advanced",
   "tooltip.farmrpgjobs.herb_grade.rare": "Rare",
-  "tooltip.farmrpgjobs.herb_grade.heroic": "Heroic"
+  "tooltip.farmrpgjobs.herb_grade.heroic": "Heroic",
+  "block.farmrpgjobs.life_herb": "Life Herb",
+  "item.farmrpgjobs.life_herb_item": "Life Herb",
+  "block.farmrpgjobs.sun_herb": "Sun Herb",
+  "item.farmrpgjobs.sun_herb_item": "Sun Herb",
+  "block.farmrpgjobs.frost_herb": "Frost Herb",
+  "item.farmrpgjobs.frost_herb_item": "Frost Herb",
+  "block.farmrpgjobs.poison_mist_herb": "Poison Mist Herb",
+  "item.farmrpgjobs.poison_mist_herb_item": "Poison Mist Herb",
+  "block.farmrpgjobs.vitality_herb": "Vitality Herb",
+  "item.farmrpgjobs.vitality_herb_item": "Vitality Herb",
+  "block.farmrpgjobs.gale_herb": "Gale Herb",
+  "item.farmrpgjobs.gale_herb_item": "Gale Herb",
+  "block.farmrpgjobs.star_moss": "Star Moss",
+  "item.farmrpgjobs.star_moss_item": "Star Moss"
 }

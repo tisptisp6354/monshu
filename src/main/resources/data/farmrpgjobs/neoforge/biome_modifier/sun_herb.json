@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": [
+    "minecraft:desert"
+  ],
+  "features": "farmrpgjobs:sun_herb",
+  "step": "vegetal_decoration"
+}

@@ -1,0 +1,25 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:item/generated",
+    "textures": {
+      "layer0": "farmrpgjobs:item/herb_grade_heroic",
+      "layer1": "farmrpgjobs:item/sun_herb_center"
+    }
+  },
+  "perspectives": {
+    "firstperson_righthand": {
+      "parent": "farmrpgjobs:item/sun_herb_hand"
+    },
+    "firstperson_lefthand": {
+      "parent": "farmrpgjobs:item/sun_herb_hand"
+    },
+    "thirdperson_righthand": {
+      "parent": "farmrpgjobs:item/sun_herb_hand"
+    },
+    "thirdperson_lefthand": {
+      "parent": "farmrpgjobs:item/sun_herb_hand"
+    }
+  }
+}

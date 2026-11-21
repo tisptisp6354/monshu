@@ -7,5 +7,19 @@
   "tooltip.farmrpgjobs.herb_grade.common": "일반",
   "tooltip.farmrpgjobs.herb_grade.advanced": "고급",
   "tooltip.farmrpgjobs.herb_grade.rare": "희귀",
-  "tooltip.farmrpgjobs.herb_grade.heroic": "영웅"
+  "tooltip.farmrpgjobs.herb_grade.heroic": "영웅",
+  "block.farmrpgjobs.life_herb": "생명초",
+  "item.farmrpgjobs.life_herb_item": "생명초",
+  "block.farmrpgjobs.sun_herb": "태양초",
+  "item.farmrpgjobs.sun_herb_item": "태양초",
+  "block.farmrpgjobs.frost_herb": "서리초",
+  "item.farmrpgjobs.frost_herb_item": "서리초",
+  "block.farmrpgjobs.poison_mist_herb": "독안개초",
+  "item.farmrpgjobs.poison_mist_herb_item": "독안개초",
+  "block.farmrpgjobs.vitality_herb": "활력초",
+  "item.farmrpgjobs.vitality_herb_item": "활력초",
+  "block.farmrpgjobs.gale_herb": "질풍초",
+  "item.farmrpgjobs.gale_herb_item": "질풍초",
+  "block.farmrpgjobs.star_moss": "별이끼",
+  "item.farmrpgjobs.star_moss_item": "별이끼"
 }
