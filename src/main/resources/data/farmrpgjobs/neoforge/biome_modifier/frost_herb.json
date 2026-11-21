@@ -1,9 +1,6 @@
 {
   "type": "neoforge:add_features",
-  "biomes": [
-    "minecraft:snowy_plains",
-    "minecraft:snowy_taiga"
-  ],
+  "biomes": "#farmrpgjobs:frost_herb_spawn",
   "features": "farmrpgjobs:frost_herb",
   "step": "vegetal_decoration"
 }

@@ -1,9 +1,6 @@
 {
   "type": "neoforge:add_features",
-  "biomes": [
-    "minecraft:plains",
-    "minecraft:sunflower_plains"
-  ],
+  "biomes": "#farmrpgjobs:life_herb_spawn",
   "features": "farmrpgjobs:life_herb",
   "step": "vegetal_decoration"
 }

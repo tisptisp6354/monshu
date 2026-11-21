@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:simple_block",
+  "type": "farmrpgjobs:herb_surface_patch",
   "config": {
     "to_place": {
       "type": "minecraft:simple_state_provider",

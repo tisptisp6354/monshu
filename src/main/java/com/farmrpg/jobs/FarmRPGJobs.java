@@ -17,6 +17,7 @@ public class FarmRPGJobs {
     public FarmRPGJobs(IEventBus modBus) {
         ModBlocks.BLOCKS.register(modBus);
         ModItems.ITEMS.register(modBus);
+        ModFeatures.FEATURES.register(modBus);
         modBus.addListener(ModItems::addCreativeTabItems);
         JobData.ATTACHMENTS.register(modBus);
         modBus.addListener(JobNetworking::register);
