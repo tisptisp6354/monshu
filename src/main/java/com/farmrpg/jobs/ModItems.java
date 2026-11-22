@@ -19,6 +19,8 @@ public final class ModItems {
     public static final DeferredItem<MoonlightHerbItem> VITALITY_HERB_ITEM = registerHerb("vitality_herb_item", ModBlocks.VITALITY_HERB);
     public static final DeferredItem<MoonlightHerbItem> GALE_HERB_ITEM = registerHerb("gale_herb_item", ModBlocks.GALE_HERB);
     public static final DeferredItem<MoonlightHerbItem> STAR_MOSS_ITEM = registerHerb("star_moss_item", ModBlocks.STAR_MOSS);
+    public static final DeferredItem<LifePotionItem> LIFE_POTION =
+            ITEMS.register("life_potion", () -> new LifePotionItem(new Item.Properties().stacksTo(1)));
 
     private static DeferredItem<MoonlightHerbItem> registerHerb(String name, DeferredBlock<MoonlightHerbBlock> block) {
         return ITEMS.register(name, () -> new MoonlightHerbItem(block.get(), new Item.Properties()));
@@ -34,6 +36,11 @@ public final class ModItems {
     private ModItems() {}
 
     public static void addCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey().equals(CreativeModeTabs.FOOD_AND_DRINKS)) {
+            for (HerbGrade grade : HerbGrade.values()) {
+                event.accept(LifePotionItem.forGrade(LIFE_POTION.get(), grade));
+            }
+        }
         if (event.getTabKey().equals(CreativeModeTabs.INGREDIENTS)) {
             event.accept(MOONLIGHT_HERB_ITEM.get());
             event.accept(LIFE_HERB_ITEM.get());

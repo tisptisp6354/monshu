@@ -1,6 +1,8 @@
 {
   "key.farmrpgjobs.open_job_screen": "직업 선택 화면 열기",
   "key.categories.farmrpgjobs": "Farm RPG 직업",
+  "item.farmrpgjobs.life_potion": "생명의 물약",
+  "tooltip.farmrpgjobs.potion_grade": "등급: %s",
   "item.farmrpgjobs.moonlight_herb_item": "달빛초",
   "block.farmrpgjobs.moonlight_herb": "달빛초",
   "tooltip.farmrpgjobs.herb_grade": "등급: %s",

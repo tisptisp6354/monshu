@@ -2,7 +2,9 @@
 package com.farmrpg.jobs;
 
 import com.mojang.logging.LogUtils;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
@@ -14,7 +16,8 @@ public class FarmRPGJobs {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public FarmRPGJobs(IEventBus modBus) {
+    public FarmRPGJobs(IEventBus modBus, ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.SERVER, AlchemyPotionSettings.SPEC);
         ModBlocks.BLOCKS.register(modBus);
         ModItems.ITEMS.register(modBus);
         ModFeatures.FEATURES.register(modBus);
