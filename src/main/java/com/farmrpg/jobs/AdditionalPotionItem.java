@@ -11,6 +11,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomModelData;
@@ -56,10 +57,10 @@ public final class AdditionalPotionItem extends PotionItem {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity drinker) {
         // No mana system exists yet; never consume the potion without its effect.
-        if (kind == Kind.MOONLIGHT) {
+        if (kind == Kind.MOONLIGHT || stack.isEmpty()) {
             return stack;
         }
-        if (!level.isClientSide && !stack.isEmpty()) {
+        if (!level.isClientSide) {
             HerbGrade grade = MoonlightHerbItem.gradeOf(stack);
             if (kind == Kind.GUARD) {
                 drinker.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,
@@ -71,7 +72,12 @@ public final class AdditionalPotionItem extends PotionItem {
                         AlchemyPotionSettings.battleAmplifier(grade)));
             }
         }
-        return super.finishUsingItem(stack, level, drinker);
+        // Keep vanilla drink events and avoid returning a glass bottle.
+        ItemStack result = super.finishUsingItem(stack.copyWithCount(1), level, drinker);
+        if (result.is(Items.GLASS_BOTTLE)) {
+            stack.consume(1, drinker);
+        }
+        return stack;
     }
 
     @Override

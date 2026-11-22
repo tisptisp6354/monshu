@@ -8,6 +8,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomModelData;
@@ -40,13 +41,22 @@ public final class LifePotionItem extends PotionItem {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity drinker) {
-        if (!level.isClientSide && !stack.isEmpty()) {
+        if (stack.isEmpty()) {
+            return stack;
+        }
+        if (!level.isClientSide) {
             HerbGrade grade = MoonlightHerbItem.gradeOf(stack);
             drinker.addEffect(new MobEffectInstance(MobEffects.REGENERATION,
                     AlchemyPotionSettings.lifeDurationTicks(grade),
                     AlchemyPotionSettings.lifeAmplifier(grade)));
         }
-        return super.finishUsingItem(stack, level, drinker);
+        // Delegate vanilla effects, statistics and drink events for one potion,
+        // then consume it without returning the empty glass bottle.
+        ItemStack result = super.finishUsingItem(stack.copyWithCount(1), level, drinker);
+        if (result.is(Items.GLASS_BOTTLE)) {
+            stack.consume(1, drinker);
+        }
+        return stack;
     }
 
     @Override
