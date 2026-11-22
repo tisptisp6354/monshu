@@ -21,6 +21,12 @@ public final class ModItems {
     public static final DeferredItem<MoonlightHerbItem> STAR_MOSS_ITEM = registerHerb("star_moss_item", ModBlocks.STAR_MOSS);
     public static final DeferredItem<LifePotionItem> LIFE_POTION =
             ITEMS.register("life_potion", () -> new LifePotionItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<AdditionalPotionItem> GUARD_POTION = ITEMS.register("guard_potion",
+            () -> new AdditionalPotionItem(new Item.Properties().stacksTo(1), AdditionalPotionItem.Kind.GUARD));
+    public static final DeferredItem<AdditionalPotionItem> BATTLE_POTION = ITEMS.register("battle_potion",
+            () -> new AdditionalPotionItem(new Item.Properties().stacksTo(1), AdditionalPotionItem.Kind.BATTLE));
+    public static final DeferredItem<AdditionalPotionItem> MOONLIGHT_POTION = ITEMS.register("moonlight_potion",
+            () -> new AdditionalPotionItem(new Item.Properties().stacksTo(1), AdditionalPotionItem.Kind.MOONLIGHT));
 
     private static DeferredItem<MoonlightHerbItem> registerHerb(String name, DeferredBlock<MoonlightHerbBlock> block) {
         return ITEMS.register(name, () -> new MoonlightHerbItem(block.get(), new Item.Properties()));
@@ -39,6 +45,11 @@ public final class ModItems {
         if (event.getTabKey().equals(CreativeModeTabs.FOOD_AND_DRINKS)) {
             for (HerbGrade grade : HerbGrade.values()) {
                 event.accept(LifePotionItem.forGrade(LIFE_POTION.get(), grade));
+            }
+            for (HerbGrade grade : HerbGrade.values()) {
+                event.accept(AdditionalPotionItem.forGrade(GUARD_POTION.get(), grade));
+                event.accept(AdditionalPotionItem.forGrade(BATTLE_POTION.get(), grade));
+                event.accept(AdditionalPotionItem.forGrade(MOONLIGHT_POTION.get(), grade));
             }
         }
         if (event.getTabKey().equals(CreativeModeTabs.INGREDIENTS)) {
