@@ -1,0 +1,24 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:item/generated",
+    "textures": {
+      "layer0": "farmrpgjobs:item/guard_potion_heroic"
+    }
+  },
+  "perspectives": {
+    "firstperson_righthand": {
+      "parent": "farmrpgjobs:item/guard_potion_hand"
+    },
+    "firstperson_lefthand": {
+      "parent": "farmrpgjobs:item/guard_potion_hand"
+    },
+    "thirdperson_righthand": {
+      "parent": "farmrpgjobs:item/guard_potion_hand"
+    },
+    "thirdperson_lefthand": {
+      "parent": "farmrpgjobs:item/guard_potion_hand"
+    }
+  }
+}
