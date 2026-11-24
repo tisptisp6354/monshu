@@ -19,6 +19,7 @@ public class FarmRPGJobs {
     public FarmRPGJobs(IEventBus modBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.SERVER, AlchemyPotionSettings.SPEC);
         ModBlocks.BLOCKS.register(modBus);
+        ModBlockEntities.TYPES.register(modBus);
         ModItems.ITEMS.register(modBus);
         ModFeatures.FEATURES.register(modBus);
         modBus.addListener(ModItems::addCreativeTabItems);
