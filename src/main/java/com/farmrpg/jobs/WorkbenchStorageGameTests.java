@@ -153,4 +153,19 @@ public final class WorkbenchStorageGameTests {
         }
         helper.succeed();
     }
+
+    @GameTest(template = "workbench_test")
+    public static void orphanPartCannotUseLegacyStorage(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        place(helper, player);
+        BlockState legacy = ModBlocks.GUILD_ALCHEMY_WORKBENCH.get().defaultBlockState()
+                .setValue(GuildAlchemyWorkbenchBlock.FACING, Direction.NORTH);
+        helper.setBlock(ROOT, legacy);
+        GuildAlchemyWorkbenchBlockEntity legacyStorage = helper.getBlockEntity(ROOT);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WATER_BUCKET));
+        helper.useBlock(ROOT.east().above(), player);
+        helper.assertTrue(legacyStorage.waterAmount() == 0, "An orphan part must not use legacy storage");
+        helper.assertTrue(player.getMainHandItem().is(Items.WATER_BUCKET), "A rejected interaction must not consume water");
+        helper.succeed();
+    }
 }

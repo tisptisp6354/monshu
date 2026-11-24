@@ -125,7 +125,8 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
     private GuildAlchemyWorkbenchBlockEntity workbenchAt(Level level, BlockPos pos, BlockState state) {
         BlockPos root = controllerPos(pos, state);
         BlockState rootState = level.getBlockState(root);
-        if (!rootState.is(this) || !isController(rootState)
+        Part expected = state.getValue(PART) == Part.LEGACY ? Part.LEGACY : Part.LOWER_LEFT;
+        if (!rootState.is(this) || rootState.getValue(PART) != expected
                 || rootState.getValue(FACING) != state.getValue(FACING)) {
             return null;
         }
