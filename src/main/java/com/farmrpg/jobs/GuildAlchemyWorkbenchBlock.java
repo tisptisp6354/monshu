@@ -5,14 +5,24 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -20,8 +30,8 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
-/** Stage-two block; the alchemy menu and persistent storage will be added later. */
-public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock {
+/** Four-part workbench; only the controller stores items and water. */
+public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<GuildAlchemyWorkbenchBlock> CODEC =
             simpleCodec(GuildAlchemyWorkbenchBlock::new);
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
@@ -91,6 +101,17 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
         builder.add(FACING, PART);
     }
 
+    private static boolean isController(BlockState state) {
+        Part part = state.getValue(PART);
+        return part == Part.LOWER_LEFT || part == Part.LEGACY;
+    }
+
+    @Override
+    @Nullable
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return isController(state) ? new GuildAlchemyWorkbenchBlockEntity(pos, state) : null;
+    }
+
     /** The lower-left block is the future owner of the workbench's saved inventory. */
     public static BlockPos controllerPos(BlockPos pos, BlockState state) {
         Part part = state.getValue(PART);
@@ -98,6 +119,19 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
             return pos;
         }
         return pos.relative(state.getValue(FACING).getClockWise(), -part.column).below(part.height);
+    }
+
+    @Nullable
+    private GuildAlchemyWorkbenchBlockEntity workbenchAt(Level level, BlockPos pos, BlockState state) {
+        BlockPos root = controllerPos(pos, state);
+        BlockState rootState = level.getBlockState(root);
+        Part expected = state.getValue(PART) == Part.LEGACY ? Part.LEGACY : Part.LOWER_LEFT;
+        if (!rootState.is(this) || rootState.getValue(PART) != expected
+                || rootState.getValue(FACING) != state.getValue(FACING)) {
+            return null;
+        }
+        BlockEntity entity = level.getBlockEntity(root);
+        return entity instanceof GuildAlchemyWorkbenchBlockEntity workbench ? workbench : null;
     }
 
     private static BlockPos positionFor(BlockPos root, Direction facing, Part part) {
@@ -126,8 +160,19 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        boolean sameBlock = state.is(newState.getBlock());
+        boolean controllerRemoved = isController(state) && (!sameBlock || !isController(newState));
+        if (controllerRemoved) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof GuildAlchemyWorkbenchBlockEntity workbench) {
+                workbench.dropInventory();
+            }
+            // A change between parts of the same block also needs to release controller data.
+            if (sameBlock) {
+                level.removeBlockEntity(pos);
+            }
+        }
         super.onRemove(state, level, pos, newState, movedByPiston);
-        if (state.is(newState.getBlock()) || state.getValue(PART) == Part.LEGACY) {
+        if (sameBlock || state.getValue(PART) == Part.LEGACY) {
             return;
         }
         Direction facing = state.getValue(FACING);
@@ -145,10 +190,43 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
     }
 
     @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+            Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (!stack.is(Items.WATER_BUCKET)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (level.isClientSide) {
+            return ItemInteractionResult.SUCCESS;
+        }
+        GuildAlchemyWorkbenchBlockEntity workbench = workbenchAt(level, pos, state);
+        if (workbench == null) {
+            player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_unavailable"), true);
+            return ItemInteractionResult.CONSUME;
+        }
+        if (!workbench.fillWaterBucket()) {
+            player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_water_full",
+                    workbench.waterAmount(), GuildAlchemyWorkbenchBlockEntity.WATER_CAPACITY), true);
+            return ItemInteractionResult.CONSUME;
+        }
+        player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player,
+                BucketItem.getEmptySuccessItem(stack, player)));
+        level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+        player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_water_filled",
+                workbench.waterAmount(), GuildAlchemyWorkbenchBlockEntity.WATER_CAPACITY), true);
+        return ItemInteractionResult.CONSUME;
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hitResult) {
         if (!level.isClientSide) {
-            player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_not_ready"), true);
+            GuildAlchemyWorkbenchBlockEntity workbench = workbenchAt(level, pos, state);
+            if (workbench == null) {
+                player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_unavailable"), true);
+            } else {
+                player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_water_status",
+                        workbench.waterAmount(), GuildAlchemyWorkbenchBlockEntity.WATER_CAPACITY), true);
+            }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
