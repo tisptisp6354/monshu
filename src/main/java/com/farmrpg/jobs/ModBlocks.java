@@ -21,6 +21,12 @@ public final class ModBlocks {
     public static final DeferredBlock<MoonlightHerbBlock> VITALITY_HERB = registerHerb("vitality_herb");
     public static final DeferredBlock<MoonlightHerbBlock> GALE_HERB = registerHerb("gale_herb");
     public static final DeferredBlock<MoonlightHerbBlock> STAR_MOSS = registerHerb("star_moss");
+    public static final DeferredBlock<GuildAlchemyWorkbenchBlock> GUILD_ALCHEMY_WORKBENCH = BLOCKS.register(
+            "guild_alchemy_workbench",
+            () -> new GuildAlchemyWorkbenchBlock(BlockBehaviour.Properties.of()
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()));
 
     private static DeferredBlock<MoonlightHerbBlock> registerHerb(String name) {
         return BLOCKS.register(name, () -> new MoonlightHerbBlock(BlockBehaviour.Properties.of()

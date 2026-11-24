@@ -1,0 +1,22 @@
+name: Verify guild alchemy workbench
+on:
+  push:
+    branches:
+      - 'verify/guild-workbench-stage2-1795505822051'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build mod
+        run: ./gradlew build --no-daemon --console=plain
+      - name: Accept game-test server EULA
+        run: |
+          mkdir -p run
+          printf 'eula=true\n' > run/eula.txt
+      - name: Run NeoForge game tests
+        run: timeout 300s ./gradlew runGameTestServer --no-daemon --console=plain
