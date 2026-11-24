@@ -1,0 +1,47 @@
+name: Package guild alchemy workbench
+on:
+  push:
+    branches:
+      - 'verify-workbench-storage-package-1795512591638'
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_COMMIT: 17c2e7a9f27b66067999c1f48fac6f471e551b12
+      DELIVERY_BRANCH: download-farmrpgjobs-storage-1795512591638
+      PACKAGE_NAME: FarmRPGJobs_alchemy_storage.zip
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Package the verified project version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=zip --prefix=FarmRPGJobs/ "$SOURCE_COMMIT" -o "/tmp/$PACKAGE_NAME"
+          unzip -t "/tmp/$PACKAGE_NAME" > /dev/null
+          python -c 'import zipfile; p="/tmp/FarmRPGJobs_alchemy_storage.zip"; z=zipfile.ZipFile(p); n=set(z.namelist()); assert z.testzip() is None; assert "FarmRPGJobs/gradlew.bat" in n; assert "FarmRPGJobs/src/main/java/com/farmrpg/jobs/GuildAlchemyWorkbenchBlock.java" in n; f="FarmRPGJobs/src/main/templates/META-INF/neoforge.mods.toml"; assert f in n and not z.getinfo(f).is_dir(); print("Valid project archive:", len(n), "entries")'
+      - name: Publish the ZIP to a separate download branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$DELIVERY_BRANCH"
+          mkdir -p downloads
+          cp "/tmp/$PACKAGE_NAME" "downloads/$PACKAGE_NAME"
+          git add "downloads/$PACKAGE_NAME"
+          git commit -m "Publish alchemy storage source archive"
+          git push origin "HEAD:refs/heads/$DELIVERY_BRANCH"
+      - name: Verify public direct download
+        shell: bash
+        run: |
+          set -euo pipefail
+          COMMIT="$(git rev-parse HEAD)"
+          URL="https://raw.githubusercontent.com/tisptisp6354/monshu/$COMMIT/downloads/$PACKAGE_NAME"
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 3 "$URL" -o /tmp/download-check.zip
+          cmp "/tmp/$PACKAGE_NAME" /tmp/download-check.zip
+          unzip -t /tmp/download-check.zip > /dev/null
+          echo "Public download matches the packaged source."
