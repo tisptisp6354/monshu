@@ -2,7 +2,6 @@ package com.farmrpg.jobs;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -20,8 +19,9 @@ public final class ModItems {
     public static final DeferredItem<MoonlightHerbItem> VITALITY_HERB_ITEM = registerHerb("vitality_herb_item", ModBlocks.VITALITY_HERB);
     public static final DeferredItem<MoonlightHerbItem> GALE_HERB_ITEM = registerHerb("gale_herb_item", ModBlocks.GALE_HERB);
     public static final DeferredItem<MoonlightHerbItem> STAR_MOSS_ITEM = registerHerb("star_moss_item", ModBlocks.STAR_MOSS);
-    public static final DeferredItem<BlockItem> GUILD_ALCHEMY_WORKBENCH = ITEMS.registerSimpleBlockItem(
-            "guild_alchemy_workbench", ModBlocks.GUILD_ALCHEMY_WORKBENCH);
+    public static final DeferredItem<GuildAlchemyWorkbenchItem> GUILD_ALCHEMY_WORKBENCH = ITEMS.register(
+            "guild_alchemy_workbench",
+            () -> new GuildAlchemyWorkbenchItem(ModBlocks.GUILD_ALCHEMY_WORKBENCH.get(), new Item.Properties()));
     public static final DeferredItem<LifePotionItem> LIFE_POTION =
             ITEMS.register("life_potion", () -> new LifePotionItem(new Item.Properties().stacksTo(64)));
     public static final DeferredItem<AdditionalPotionItem> GUARD_POTION = ITEMS.register("guard_potion",

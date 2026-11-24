@@ -1,8 +1,79 @@
 {
   "variants": {
-    "facing=north": {"model": "farmrpgjobs:block/guild_alchemy_workbench"},
-    "facing=east": {"model": "farmrpgjobs:block/guild_alchemy_workbench", "y": 90},
-    "facing=south": {"model": "farmrpgjobs:block/guild_alchemy_workbench", "y": 180},
-    "facing=west": {"model": "farmrpgjobs:block/guild_alchemy_workbench", "y": 270}
+    "facing=north,part=legacy": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench"
+    },
+    "facing=north,part=lower_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_left"
+    },
+    "facing=north,part=lower_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_right"
+    },
+    "facing=north,part=upper_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_left"
+    },
+    "facing=north,part=upper_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_right"
+    },
+    "facing=east,part=legacy": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench",
+      "y": 90
+    },
+    "facing=east,part=lower_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_left",
+      "y": 90
+    },
+    "facing=east,part=lower_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_right",
+      "y": 90
+    },
+    "facing=east,part=upper_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_left",
+      "y": 90
+    },
+    "facing=east,part=upper_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_right",
+      "y": 90
+    },
+    "facing=south,part=legacy": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench",
+      "y": 180
+    },
+    "facing=south,part=lower_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_left",
+      "y": 180
+    },
+    "facing=south,part=lower_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_right",
+      "y": 180
+    },
+    "facing=south,part=upper_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_left",
+      "y": 180
+    },
+    "facing=south,part=upper_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_right",
+      "y": 180
+    },
+    "facing=west,part=legacy": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench",
+      "y": 270
+    },
+    "facing=west,part=lower_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_left",
+      "y": 270
+    },
+    "facing=west,part=lower_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_lower_right",
+      "y": 270
+    },
+    "facing=west,part=upper_left": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_left",
+      "y": 270
+    },
+    "facing=west,part=upper_right": {
+      "model": "farmrpgjobs:block/guild_alchemy_workbench_upper_right",
+      "y": 270
+    }
   }
 }

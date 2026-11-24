@@ -2,6 +2,7 @@ package com.farmrpg.jobs;
 
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -26,6 +27,7 @@ public final class ModBlocks {
             () -> new GuildAlchemyWorkbenchBlock(BlockBehaviour.Properties.of()
                     .strength(2.5F)
                     .sound(SoundType.WOOD)
+                    .pushReaction(PushReaction.BLOCK)
                     .noOcclusion()));
 
     private static DeferredBlock<MoonlightHerbBlock> registerHerb(String name) {
