@@ -1,6 +1,8 @@
 {
   "key.farmrpgjobs.open_job_screen": "Open job selection",
   "key.categories.farmrpgjobs": "Farm RPG Jobs",
+  "block.farmrpgjobs.guild_alchemy_workbench": "Guild Alchemy Workbench",
+  "message.farmrpgjobs.alchemy_not_ready": "The guild alchemy workbench is not ready to craft yet.",
   "item.farmrpgjobs.life_potion": "Potion of Life",
   "item.farmrpgjobs.guard_potion": "Potion of Protection",
   "item.farmrpgjobs.battle_potion": "Potion of Battle",

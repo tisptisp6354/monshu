@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": {"model": "farmrpgjobs:block/guild_alchemy_workbench"},
+    "facing=east": {"model": "farmrpgjobs:block/guild_alchemy_workbench", "y": 90},
+    "facing=south": {"model": "farmrpgjobs:block/guild_alchemy_workbench", "y": 180},
+    "facing=west": {"model": "farmrpgjobs:block/guild_alchemy_workbench", "y": 270}
+  }
+}
