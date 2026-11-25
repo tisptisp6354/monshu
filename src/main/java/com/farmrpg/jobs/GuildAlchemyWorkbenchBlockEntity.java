@@ -19,7 +19,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
-/** Server-owned storage for one workbench. The crafting menu is a later stage. */
+/** Server-owned storage for one workbench. Crafting will be added separately. */
 public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
     public static final int SLOT_COUNT = 6;
     public static final int FIRST_HERB_SLOT = 0;
@@ -34,13 +34,7 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (slot >= FIRST_HERB_SLOT && slot <= LAST_HERB_SLOT) {
-                return stack.getItem() instanceof MoonlightHerbItem;
-            }
-            if (slot == CATALYST_SLOT) {
-                return stack.is(Items.REDSTONE) || stack.is(Items.GLOWSTONE_DUST) || stack.is(Items.BLAZE_POWDER);
-            }
-            return slot == BOTTLE_SLOT && stack.is(Items.GLASS_BOTTLE);
+            return isValidInput(slot, stack);
         }
 
         @Override
@@ -62,6 +56,17 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
 
     public GuildAlchemyWorkbenchBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GUILD_ALCHEMY_WORKBENCH.get(), pos, state);
+    }
+
+    static boolean isValidInput(int slot, ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        if (slot >= FIRST_HERB_SLOT && slot <= LAST_HERB_SLOT) {
+            return stack.getItem() instanceof MoonlightHerbItem;
+        }
+        if (slot == CATALYST_SLOT) {
+            return stack.is(Items.REDSTONE) || stack.is(Items.GLOWSTONE_DUST) || stack.is(Items.BLAZE_POWDER);
+        }
+        return slot == BOTTLE_SLOT && stack.is(Items.GLASS_BOTTLE);
     }
 
     // Package-private: no hopper or pipe capability is exposed at this stage.
@@ -137,7 +142,7 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
         water.setFluid(amount == 0 ? FluidStack.EMPTY : new FluidStack(Fluids.WATER, amount));
     }
 
-    // Only water is broadcast to nearby clients; inventory sync belongs to the future menu.
+    // Only water is broadcast to nearby clients; menu viewers receive slot updates separately.
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
