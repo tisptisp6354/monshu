@@ -6,8 +6,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 /** A server-side snapshot of the chosen recipe and its configurable quantities. */
 final class GuildAlchemyCrafting {
     enum Status { READY, HERBS, CATALYST, BOTTLE, WATER, OUTPUT, INVALID }
+    enum Outcome { REJECTED, SUCCESS, FAILURE }
 
-    record Plan(ItemStack[] ingredients, int water, ItemStack potion, HerbGrade grade) {}
+    record Plan(ItemStack[] ingredients, int water, ItemStack potion, HerbGrade grade, int successChance) {}
 
     private GuildAlchemyCrafting() {}
 
@@ -20,7 +21,15 @@ final class GuildAlchemyCrafting {
             ingredients[i] = GuildAlchemyPreview.ingredient(recipe, i, grade);
         }
         return new Plan(ingredients, AlchemyCraftingSettings.waterPerPotion(),
-                GuildAlchemyPreview.potion(recipe, grade), grade);
+                GuildAlchemyPreview.potion(recipe, grade), grade, AlchemyCraftingSettings.successChance(grade));
+    }
+
+    /** roll is an independently sampled integer from 0 through 99. */
+    static boolean succeeds(int roll, int successChance) {
+        if (roll < 0 || roll >= 100 || successChance < 0 || successChance > 100) {
+            throw new IllegalArgumentException("Invalid alchemy probability or roll");
+        }
+        return roll < successChance;
     }
 
     static Status status(Plan plan, IItemHandler inventory, int water) {
