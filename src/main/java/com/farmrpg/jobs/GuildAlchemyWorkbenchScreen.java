@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /** The existing illustrated background with real server-synchronized menu slots. */
 public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<GuildAlchemyWorkbenchMenu> {
@@ -42,6 +43,10 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
             graphics.fill(leftPos + 188, topPos + 75 - height, leftPos + 190, topPos + 75, 0xA0C6F5FF);
         }
 
+        // The result is a real take-only slot; the illustration's result panel is wider.
+        graphics.fill(leftPos + 193, topPos + 108, leftPos + 211, topPos + 126, 0xFF78513F);
+        graphics.fill(leftPos + 194, topPos + 109, leftPos + 210, topPos + 125, 0xE921141B);
+
         // The illustration leaves room for a real 27-slot inventory and a nine-slot hotbar.
         for (int row = 0; row < 4; row++) {
             int y = row == 3 ? GuildAlchemyWorkbenchMenu.HOTBAR_Y : GuildAlchemyWorkbenchMenu.INVENTORY_Y + row * 18;
@@ -65,10 +70,11 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
 
         graphics.pose().pushPose();
         graphics.pose().translate(193, 79, 0);
-        graphics.pose().scale(0.75F, 0.75F, 1.0F);
+        graphics.pose().scale(0.70F, 0.70F, 1.0F);
         graphics.drawCenteredString(font, Component.literal(menu.waterAmount() + " / 4000 mB"), 0, 0, WHITE);
         graphics.pose().popPose();
-        graphics.drawCenteredString(font, Component.translatable("screen.farmrpgjobs.alchemy.fill"), 194, 89, WHITE);
+        int fillColor = hasWaterBucket() && menu.waterAmount() <= 3000 ? WHITE : 0xFFB7A8A0;
+        graphics.drawCenteredString(font, Component.translatable("screen.farmrpgjobs.alchemy.fill"), 194, 89, fillColor);
         graphics.drawCenteredString(font, Component.translatable("screen.farmrpgjobs.alchemy.recipes"), 257, 32, GOLD);
         HerbGrade grade = HerbGrade.fromModelId(menu.selectedGrade());
         for (int i = 0; i < GuildAlchemyPreview.RECIPE_COUNT; i++) {
@@ -131,7 +137,10 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
             }
         }
         if (inside(x, y, 176, 87, 37, 11)) {
-            graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.fill_tooltip"), mouseX, mouseY);
+            String key = menu.waterAmount() > 3000 ? "screen.farmrpgjobs.alchemy.fill_full"
+                    : !hasWaterBucket() ? "screen.farmrpgjobs.alchemy.fill_no_bucket"
+                    : "screen.farmrpgjobs.alchemy.fill_tooltip";
+            graphics.renderTooltip(font, Component.translatable(key), mouseX, mouseY);
         } else if (inside(x, y, 224, 106, 68, 19)) {
             graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.craft_tooltip"), mouseX, mouseY);
         }
@@ -165,5 +174,10 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
 
     private static boolean inside(double x, double y, int left, int top, int width, int height) {
         return x >= left && x < left + width && y >= top && y < top + height;
+    }
+
+    private boolean hasWaterBucket() {
+        return minecraft != null && minecraft.player != null && minecraft.player.getInventory().items.stream()
+                .anyMatch(stack -> stack.is(Items.WATER_BUCKET));
     }
 }

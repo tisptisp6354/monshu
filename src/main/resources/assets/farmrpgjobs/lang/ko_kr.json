@@ -15,6 +15,8 @@
   "screen.farmrpgjobs.alchemy.bottle": "빈 병",
   "screen.farmrpgjobs.alchemy.fill": "물 충전",
   "screen.farmrpgjobs.alchemy.fill_tooltip": "인벤토리의 물 양동이로 1,000 mB를 충전합니다.",
+  "screen.farmrpgjobs.alchemy.fill_no_bucket": "인벤토리에 물 양동이가 필요합니다.",
+  "screen.farmrpgjobs.alchemy.fill_full": "물 양동이 1개를 넣을 공간이 없습니다.",
   "screen.farmrpgjobs.alchemy.recipes": "레시피 선택",
   "screen.farmrpgjobs.alchemy.recipe.0": "생명",
   "screen.farmrpgjobs.alchemy.recipe.1": "수호",
