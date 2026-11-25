@@ -18,7 +18,7 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
-/** A view of the server-owned workbench; no recipe can be crafted at this stage. */
+/** A view of the server-owned workbench and its server-validated crafting action. */
 public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
     public static final int WIDTH = 312;
     public static final int HEIGHT = 220;
@@ -28,13 +28,17 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
     public static final int RECIPE_BUTTON_BASE = 0;
     public static final int GRADE_BUTTON_BASE = 10;
     public static final int FILL_WATER_BUTTON = 20;
+    public static final int CRAFT_BUTTON = 21;
     private static final int PLAYER_START = GuildAlchemyWorkbenchBlockEntity.SLOT_COUNT;
     private static final int HOTBAR_START = PLAYER_START + 27;
     private static final int PLAYER_END = HOTBAR_START + 9;
     private static final int WATER = 0;
     private static final int RECIPE = 1;
     private static final int GRADE = 2;
-    private static final int DATA_COUNT = 3;
+    private static final int FIRST_COUNT = 3;
+    private static final int WATER_COST = 7;
+    private static final int CRAFT_STATUS = 8;
+    private static final int DATA_COUNT = 9;
 
     private final ContainerData data;
     @Nullable private final GuildAlchemyWorkbenchBlockEntity workbench;
@@ -42,7 +46,13 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
     /** Client constructor: menu packets replace the placeholder contents. */
     public GuildAlchemyWorkbenchMenu(int id, Inventory playerInventory) {
         this(id, playerInventory, new ItemStackHandler(GuildAlchemyWorkbenchBlockEntity.SLOT_COUNT),
-                new SimpleContainerData(DATA_COUNT), null);
+                clientData(), null);
+    }
+
+    private static ContainerData clientData() {
+        SimpleContainerData values = new SimpleContainerData(DATA_COUNT);
+        values.set(CRAFT_STATUS, GuildAlchemyCrafting.Status.INVALID.ordinal());
+        return values;
     }
 
     /** Each player has independent recipe choices while sharing the real workbench storage. */
@@ -88,6 +98,12 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
     public int waterAmount() { return data.get(WATER); }
     public int selectedRecipe() { return data.get(RECIPE); }
     public int selectedGrade() { return data.get(GRADE); }
+    public int requiredCount(int ingredient) {
+        return ingredient == 4 ? 1 : Math.max(1, data.get(FIRST_COUNT + ingredient));
+    }
+    public int waterCost() { return data.get(WATER_COST); }
+    public int craftStatus() { return data.get(CRAFT_STATUS); }
+    public boolean canCraft() { return craftStatus() == GuildAlchemyCrafting.Status.READY.ordinal(); }
 
     @Override
     public boolean stillValid(Player player) {
@@ -107,6 +123,12 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
         }
         if (id >= GRADE_BUTTON_BASE && id < GRADE_BUTTON_BASE + 4) {
             data.set(GRADE, id - GRADE_BUTTON_BASE);
+            return true;
+        }
+        if (id == CRAFT_BUTTON) {
+            if (!workbench.craft(selectedRecipe(), selectedGrade())) return false;
+            player.level().playSound(null, workbench.getBlockPos(), SoundEvents.BREWING_STAND_BREW,
+                    SoundSource.BLOCKS, 0.7F, 1.0F);
             return true;
         }
         if (id != FILL_WATER_BUTTON) return false;
@@ -169,6 +191,11 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
                 case WATER -> workbench.waterAmount();
                 case RECIPE -> recipe;
                 case GRADE -> grade;
+                case FIRST_COUNT, FIRST_COUNT + 1, FIRST_COUNT + 2 ->
+                        AlchemyCraftingSettings.herbCount(recipe, index - FIRST_COUNT);
+                case FIRST_COUNT + 3 -> AlchemyCraftingSettings.catalystCount(HerbGrade.fromModelId(grade));
+                case WATER_COST -> AlchemyCraftingSettings.waterPerPotion();
+                case CRAFT_STATUS -> workbench.craftingStatus(recipe, grade).ordinal();
                 default -> 0;
             };
         }

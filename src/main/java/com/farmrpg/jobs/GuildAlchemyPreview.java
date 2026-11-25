@@ -6,14 +6,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomModelData;
 
-/** Display-only recipe drafts. This class neither validates nor consumes ingredients. */
+/** Shared recipe identities and display stacks. Crafting validates and consumes separately. */
 public final class GuildAlchemyPreview {
     public static final int RECIPE_COUNT = 4;
-    private static final int[] HERB_COUNTS = {3, 2, 1};
 
     private GuildAlchemyPreview() {}
 
     public static ItemStack herb(int recipe, int index, HerbGrade grade) {
+        return herb(recipe, index, grade, AlchemyCraftingSettings.herbCount(recipe, index));
+    }
+
+    public static ItemStack herb(int recipe, int index, HerbGrade grade, int count) {
         Item item = switch (recipe) {
             case 0 -> switch (index) {
                 case 0 -> ModItems.LIFE_HERB_ITEM.get();
@@ -36,17 +39,20 @@ public final class GuildAlchemyPreview {
                 default -> ModItems.STAR_MOSS_ITEM.get();
             };
         };
-        ItemStack stack = new ItemStack(item, HERB_COUNTS[index]);
+        ItemStack stack = new ItemStack(item, count);
         if (grade.modelId() != 0) stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(grade.modelId()));
         return stack;
     }
 
     public static ItemStack catalyst(HerbGrade grade) {
+        return catalyst(grade, AlchemyCraftingSettings.catalystCount(grade));
+    }
+
+    public static ItemStack catalyst(HerbGrade grade, int count) {
         return switch (grade) {
-            case COMMON -> new ItemStack(Items.REDSTONE, 2);
-            case ADVANCED -> new ItemStack(Items.REDSTONE, 3);
-            case RARE -> new ItemStack(Items.GLOWSTONE_DUST, 2);
-            case HEROIC -> new ItemStack(Items.BLAZE_POWDER, 2);
+            case COMMON, ADVANCED -> new ItemStack(Items.REDSTONE, count);
+            case RARE -> new ItemStack(Items.GLOWSTONE_DUST, count);
+            case HEROIC -> new ItemStack(Items.BLAZE_POWDER, count);
         };
     }
 
@@ -60,7 +66,14 @@ public final class GuildAlchemyPreview {
     }
 
     public static ItemStack ingredient(int recipe, int index, HerbGrade grade) {
-        if (index < 3) return herb(recipe, index, grade);
-        return index == 3 ? catalyst(grade) : new ItemStack(Items.GLASS_BOTTLE);
+        int count = index < 3 ? AlchemyCraftingSettings.herbCount(recipe, index)
+                : index == 3 ? AlchemyCraftingSettings.catalystCount(grade) : 1;
+        return ingredient(recipe, index, grade, count);
+    }
+
+    /** Client displays server-synchronized counts without reading local config. */
+    public static ItemStack ingredient(int recipe, int index, HerbGrade grade, int count) {
+        if (index < 3) return herb(recipe, index, grade, count);
+        return index == 3 ? catalyst(grade, count) : new ItemStack(Items.GLASS_BOTTLE);
     }
 }
