@@ -111,6 +111,14 @@ public final class WorkbenchMenuGameTests {
         helper.assertTrue(first.clickMenuButton(alice, 20), "First bucket fills tank");
         helper.assertTrue(second.clickMenuButton(bob, 20), "Second bucket fills same tank");
         helper.assertTrue(first.waterAmount() == 2000 && second.waterAmount() == 2000, "Both menus see shared water");
+        GuildAlchemyWorkbenchMenu clientCopy = new GuildAlchemyWorkbenchMenu(9, alice.getInventory());
+        clientCopy.setData(0, 2000);
+        clientCopy.setData(1, 2);
+        clientCopy.setData(2, 3);
+        helper.assertTrue(clientCopy.waterAmount() == 2000 && clientCopy.selectedRecipe() == 2
+                && clientCopy.selectedGrade() == 3, "Client data slots accept synchronized values");
+        helper.assertFalse(clientCopy.getSlot(5).mayPlace(new ItemStack(Items.DIAMOND)),
+                "The client also blocks placing items in the result slot");
         helper.assertTrue(alice.getInventory().getItem(0).is(Items.BUCKET)
                 && bob.getInventory().getItem(0).is(Items.BUCKET), "Both empty buckets are returned");
         alice.getInventory().setItem(0, new ItemStack(Items.WATER_BUCKET));
@@ -126,6 +134,25 @@ public final class WorkbenchMenuGameTests {
         helper.getLevel().destroyBlock(helper.absolutePos(ROOT), true, alice);
         helper.assertFalse(first.stillValid(alice) || second.stillValid(bob), "Menus close after workbench is destroyed");
         helper.assertFalse(first.clickMenuButton(alice, 20), "A stale menu cannot consume a bucket");
+        helper.succeed();
+    }
+
+    @GameTest(template = "workbench_test")
+    public static void menuProviderOnEachPart(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        GuildAlchemyWorkbenchBlockEntity bench = place(helper, player);
+        BlockPos[] parts = {ROOT, ROOT.east(), ROOT.above(), ROOT.east().above()};
+        bench.inventory().setStackInSlot(0, rareLife(3));
+        helper.assertTrue(bench.fillWaterBucket(), "Tank must accept test water");
+        for (BlockPos part : parts) {
+            var provider = helper.getBlockState(part).getMenuProvider(helper.getLevel(), helper.absolutePos(part));
+            helper.assertTrue(provider != null, "Each workbench part must provide a menu");
+            var candidate = provider.createMenu(7, player.getInventory(), player);
+            helper.assertTrue(candidate instanceof GuildAlchemyWorkbenchMenu, "Provider creates the registered menu");
+            var menu = (GuildAlchemyWorkbenchMenu) candidate;
+            helper.assertTrue(menu.getSlot(0).getItem().getCount() == 3 && menu.waterAmount() == 1000,
+                    "Every part opens the same saved inventory and water tank");
+        }
         helper.succeed();
     }
 
