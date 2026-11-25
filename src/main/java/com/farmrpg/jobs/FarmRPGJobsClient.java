@@ -11,6 +11,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.lwjgl.glfw.GLFW;
 
 @Mod(value = FarmRPGJobs.MODID, dist = Dist.CLIENT)
@@ -30,10 +31,15 @@ public class FarmRPGJobsClient {
         modEventBus.addListener(
                 FarmRPGJobsClient::registerKeys
         );
+        modEventBus.addListener(FarmRPGJobsClient::registerScreens);
 
         NeoForge.EVENT_BUS.addListener(
                 FarmRPGJobsClient::onClientTick
         );
+    }
+
+    private static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.GUILD_ALCHEMY.get(), GuildAlchemyWorkbenchScreen::new);
     }
 
     private static void registerKeys(

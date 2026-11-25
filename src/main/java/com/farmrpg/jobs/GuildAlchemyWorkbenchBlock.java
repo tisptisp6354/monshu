@@ -5,12 +5,15 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
@@ -112,7 +115,7 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
         return isController(state) ? new GuildAlchemyWorkbenchBlockEntity(pos, state) : null;
     }
 
-    /** The lower-left block is the future owner of the workbench's saved inventory. */
+    /** The lower-left block owns the workbench's saved inventory. */
     public static BlockPos controllerPos(BlockPos pos, BlockState state) {
         Part part = state.getValue(PART);
         if (part == Part.LEGACY) {
@@ -217,15 +220,24 @@ public final class GuildAlchemyWorkbenchBlock extends HorizontalDirectionalBlock
     }
 
     @Override
+    @Nullable
+    protected MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+        GuildAlchemyWorkbenchBlockEntity workbench = workbenchAt(level, pos, state);
+        if (workbench == null) return null;
+        return new SimpleMenuProvider(
+                (id, inventory, player) -> new GuildAlchemyWorkbenchMenu(id, inventory, workbench),
+                Component.translatable("block.farmrpgjobs.guild_alchemy_workbench"));
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
-            GuildAlchemyWorkbenchBlockEntity workbench = workbenchAt(level, pos, state);
-            if (workbench == null) {
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+            MenuProvider provider = getMenuProvider(state, level, pos);
+            if (provider == null) {
                 player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_unavailable"), true);
             } else {
-                player.displayClientMessage(Component.translatable("message.farmrpgjobs.alchemy_water_status",
-                        workbench.waterAmount(), GuildAlchemyWorkbenchBlockEntity.WATER_CAPACITY), true);
+                serverPlayer.openMenu(provider);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
