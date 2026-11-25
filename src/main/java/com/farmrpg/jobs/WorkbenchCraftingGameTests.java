@@ -92,7 +92,10 @@ public final class WorkbenchCraftingGameTests {
                         && plan.ingredients()[4].getCount() == 1, "An empty bottle is separate");
                 prepare(bench, recipe, grade, 1);
                 helper.assertTrue(menu.canCraft(), "Complete recipe is ready");
+                var chunk = helper.getLevel().getChunkAt(helper.absolutePos(ROOT));
+                chunk.setUnsaved(false);
                 helper.assertTrue(menu.clickMenuButton(player, GuildAlchemyWorkbenchMenu.CRAFT_BUTTON), "Craft exactly one potion");
+                helper.assertTrue(chunk.isUnsaved(), "The committed result must be marked for saving");
                 crafts++;
                 for (int i = 0; i < 5; i++) {
                     helper.assertTrue(bench.inventory().getStackInSlot(i).getCount() == 1,
@@ -189,6 +192,31 @@ public final class WorkbenchCraftingGameTests {
         helper.assertTrue((pixels[0] >>> 24) == 0, "Outside black should become transparent");
         helper.assertTrue(pixels[32 * width] == 0xFFFF3833, "Bright decoration at edge must remain");
         helper.assertTrue(pixels[32 * width + 32] == center, "Dark interior must remain opaque");
+        helper.succeed();
+    }
+
+    @GameTest(template = "workbench_test")
+    public static void edgeMaskOnActualArtwork(GameTestHelper helper) throws Exception {
+        try (var stream = WorkbenchCraftingGameTests.class.getClassLoader().getResourceAsStream(
+                "assets/farmrpgjobs/textures/gui/guild_alchemy_background.png")) {
+            helper.assertTrue(stream != null, "GUI artwork is present");
+            var image = javax.imageio.ImageIO.read(stream);
+            int width = image.getWidth(), height = image.getHeight();
+            helper.assertTrue(width == 1536 && height == 1024, "Artwork has its expected dimensions");
+            int[] pixels = new int[width * height];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int argb = image.getRGB(x, y);
+                    pixels[y * width + x] = (argb & 0xFF00FF00) | ((argb & 0xFF) << 16) | ((argb >>> 16) & 0xFF);
+                }
+            }
+            int crystal = pixels[900 * width], center = pixels[(height / 2) * width + width / 2];
+            GuildAlchemyEdgeMask.apply(pixels, width, height);
+            helper.assertTrue((pixels[0] >>> 24) == 0 && (pixels[500 * width + width - 1] >>> 24) == 0,
+                    "The dark exterior is transparent on both sides");
+            helper.assertTrue(pixels[900 * width] == crystal && pixels[(height / 2) * width + width / 2] == center,
+                    "The edge crystal and the interior artwork stay unchanged");
+        }
         helper.succeed();
     }
 

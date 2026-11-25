@@ -40,20 +40,24 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
 
         @Override
         protected void onContentsChanged(int slot) {
-            setChanged();
+            if (!crafting) setChanged();
         }
     };
 
     private final FluidTank water = new FluidTank(WATER_CAPACITY, stack -> stack.is(Fluids.WATER)) {
         @Override
         protected void onContentsChanged() {
-            setChanged();
-            if (level != null && !level.isClientSide) {
-                BlockState state = getBlockState();
-                level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
-            }
+            if (!crafting) publishWaterChange();
         }
     };
+
+    private void publishWaterChange() {
+        setChanged();
+        if (level != null && !level.isClientSide && !isRemoved() && level.getBlockEntity(worldPosition) == this) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
 
     public GuildAlchemyWorkbenchBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GUILD_ALCHEMY_WORKBENCH.get(), pos, state);
@@ -112,7 +116,8 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
 
     /** Called on the server thread. One accepted request creates exactly one potion. */
     boolean craft(int recipe, int grade) {
-        if (level == null || level.isClientSide || crafting) return false;
+        if (level == null || level.isClientSide || isRemoved() || crafting
+                || level.getBlockEntity(worldPosition) != this) return false;
         crafting = true;
         try {
             GuildAlchemyCrafting.Plan plan = GuildAlchemyCrafting.plan(recipe, grade);
@@ -129,6 +134,8 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
             if (!drainWater(plan.water(), false)) return false;
             for (int i = 0; i < remaining.length; i++) inventory.setStackInSlot(i, remaining[i]);
             inventory.setStackInSlot(OUTPUT_SLOT, result);
+            // Publish only after water, all ingredients and the output have been committed.
+            publishWaterChange();
             return true;
         } finally {
             crafting = false;
