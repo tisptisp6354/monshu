@@ -1,10 +1,15 @@
 package com.farmrpg.jobs;
 
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -16,6 +21,8 @@ import net.minecraft.world.item.Items;
 public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<GuildAlchemyWorkbenchMenu> {
     private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(
             FarmRPGJobs.MODID, "textures/gui/guild_alchemy_background.png");
+    private static final ResourceLocation TRANSPARENT_BACKGROUND = ResourceLocation.fromNamespaceAndPath(
+            FarmRPGJobs.MODID, "dynamic/guild_alchemy_background");
     private static final int[] RECIPE_X = {222, 258, 222, 258};
     private static final int[] RECIPE_Y = {42, 42, 62, 62};
     private static final int[] GRADE_X = {222, 240, 258, 276};
@@ -23,6 +30,7 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
     private static final int PREVIEW_Y = 109;
     private static final int GOLD = 0xFFFFD57A;
     private static final int WHITE = 0xFFFFF1D0;
+    private boolean hasMaskedBackground;
 
     public GuildAlchemyWorkbenchScreen(GuildAlchemyWorkbenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -31,9 +39,47 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
     }
 
     @Override
+    protected void init() {
+        super.init();
+        if (hasMaskedBackground || minecraft == null) return;
+        NativeImage image = null;
+        try (InputStream stream = minecraft.getResourceManager().getResourceOrThrow(BACKGROUND).open()) {
+            image = NativeImage.read(stream);
+            if (image.getWidth() != 1536 || image.getHeight() != 1024) {
+                image.close();
+                return;
+            }
+            int[] pixels = image.getPixelsRGBA();
+            GuildAlchemyEdgeMask.apply(pixels, image.getWidth(), image.getHeight());
+            for (int i = 0; i < pixels.length; i++) {
+                if ((pixels[i] >>> 24) == 0) image.setPixelRGBA(i % image.getWidth(), i / image.getWidth(), pixels[i]);
+            }
+            minecraft.getTextureManager().register(TRANSPARENT_BACKGROUND, new DynamicTexture(image));
+            image = null; // The texture manager owns and closes the image.
+            hasMaskedBackground = true;
+        } catch (IOException | RuntimeException exception) {
+            if (image != null) image.close();
+            FarmRPGJobs.LOGGER.warn("Could not make the alchemy GUI border transparent; using the original background", exception);
+        }
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        if (hasMaskedBackground && minecraft != null) {
+            minecraft.getTextureManager().release(TRANSPARENT_BACKGROUND);
+            hasMaskedBackground = false;
+        }
+    }
+
+    @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(BACKGROUND, leftPos, topPos, imageWidth, imageHeight, 0.0F, 0.0F,
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        graphics.blit(hasMaskedBackground ? TRANSPARENT_BACKGROUND : BACKGROUND,
+                leftPos, topPos, imageWidth, imageHeight, 0.0F, 0.0F,
                 1536, 1024, 1536, 1024);
+        RenderSystem.disableBlend();
 
         // The illustration's tank is empty. Draw only the synchronized water amount over it.
         int height = Mth.clamp(menu.waterAmount(), 0, GuildAlchemyWorkbenchBlockEntity.WATER_CAPACITY) * 24
@@ -93,7 +139,7 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
         graphics.drawString(font, Component.translatable("screen.farmrpgjobs.alchemy.required"), 25, 99, GOLD, false);
         graphics.drawString(font, Component.translatable("screen.farmrpgjobs.alchemy.output"), 188, 99, GOLD, false);
         for (int i = 0; i < PREVIEW_X.length; i++) {
-            ItemStack ingredient = GuildAlchemyPreview.ingredient(menu.selectedRecipe(), i, grade);
+            ItemStack ingredient = GuildAlchemyPreview.ingredient(menu.selectedRecipe(), i, grade, menu.requiredCount(i));
             int valid = validIngredientCount(i, ingredient, grade);
             int color = valid >= ingredient.getCount() ? 0xFF62DD78 : 0xFFCF6559;
             graphics.renderOutline(PREVIEW_X[i] - 1, PREVIEW_Y - 1, 18, 18, color);
@@ -101,7 +147,10 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
             graphics.renderItemDecorations(font, ingredient, PREVIEW_X[i], PREVIEW_Y,
                     Integer.toString(ingredient.getCount()));
         }
-        graphics.drawCenteredString(font, Component.translatable("screen.farmrpgjobs.alchemy.coming_soon"), 258, 113, WHITE);
+        String craftLabel = menu.canCraft() ? "screen.farmrpgjobs.alchemy.craft"
+                : "screen.farmrpgjobs.alchemy.craft_unavailable";
+        graphics.drawCenteredString(font, Component.translatable(craftLabel), 258, 113,
+                menu.canCraft() ? WHITE : 0xFFB7A8A0);
     }
 
     private int validIngredientCount(int index, ItemStack expected, HerbGrade grade) {
@@ -121,7 +170,7 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
         HerbGrade grade = HerbGrade.fromModelId(menu.selectedGrade());
         for (int i = 0; i < PREVIEW_X.length; i++) {
             if (inside(x, y, PREVIEW_X[i], PREVIEW_Y, 16, 16)) {
-                ItemStack expected = GuildAlchemyPreview.ingredient(menu.selectedRecipe(), i, grade);
+                ItemStack expected = GuildAlchemyPreview.ingredient(menu.selectedRecipe(), i, grade, menu.requiredCount(i));
                 int have = validIngredientCount(i, expected, grade);
                 List<Component> tooltip = new ArrayList<>(getTooltipFromItem(minecraft, expected));
                 tooltip.add(Component.translatable("screen.farmrpgjobs.alchemy.ingredient_progress", have, expected.getCount())
@@ -141,8 +190,10 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
                     : !hasWaterBucket() ? "screen.farmrpgjobs.alchemy.fill_no_bucket"
                     : "screen.farmrpgjobs.alchemy.fill_tooltip";
             graphics.renderTooltip(font, Component.translatable(key), mouseX, mouseY);
+        } else if (inside(x, y, 185, 50, 18, 27)) {
+            graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.water_cost", menu.waterCost()), mouseX, mouseY);
         } else if (inside(x, y, 224, 106, 68, 19)) {
-            graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.craft_tooltip"), mouseX, mouseY);
+            graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.status." + menu.craftStatus()), mouseX, mouseY);
         }
     }
 
@@ -167,7 +218,12 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
                 minecraft.gameMode.handleInventoryButtonClick(menu.containerId, GuildAlchemyWorkbenchMenu.FILL_WATER_BUTTON);
                 return true;
             }
-            if (inside(x, y, 224, 106, 68, 19)) return true; // Crafting is deliberately inactive.
+            if (inside(x, y, 224, 106, 68, 19)) {
+                if (menu.canCraft()) {
+                    minecraft.gameMode.handleInventoryButtonClick(menu.containerId, GuildAlchemyWorkbenchMenu.CRAFT_BUTTON);
+                }
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

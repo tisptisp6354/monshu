@@ -24,6 +24,7 @@ public final class AlchemyPotionSettings {
 
         addBuffSettings(builder, "guard_potion", GUARD_POTION);
         addBuffSettings(builder, "battle_potion", BATTLE_POTION);
+        AlchemyCraftingSettings.register(builder);
         SPEC = builder.build();
     }
 

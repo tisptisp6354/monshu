@@ -19,7 +19,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
-/** Server-owned storage for one workbench. Crafting will be added separately. */
+/** Server-owned storage and atomic crafting for one workbench. */
 public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
     public static final int SLOT_COUNT = 6;
     public static final int FIRST_HERB_SLOT = 0;
@@ -30,6 +30,7 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
     public static final int WATER_CAPACITY = 4000;
     private static final String INVENTORY_TAG = "Inventory";
     private static final String WATER_TAG = "WaterAmount";
+    private boolean crafting;
 
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {
         @Override
@@ -39,20 +40,24 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
 
         @Override
         protected void onContentsChanged(int slot) {
-            setChanged();
+            if (!crafting) setChanged();
         }
     };
 
     private final FluidTank water = new FluidTank(WATER_CAPACITY, stack -> stack.is(Fluids.WATER)) {
         @Override
         protected void onContentsChanged() {
-            setChanged();
-            if (level != null && !level.isClientSide) {
-                BlockState state = getBlockState();
-                level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
-            }
+            if (!crafting) publishWaterChange();
         }
     };
+
+    private void publishWaterChange() {
+        setChanged();
+        if (level != null && !level.isClientSide && !isRemoved() && level.getBlockEntity(worldPosition) == this) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
 
     public GuildAlchemyWorkbenchBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GUILD_ALCHEMY_WORKBENCH.get(), pos, state);
@@ -90,7 +95,7 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
         return water.fill(bucket, FluidAction.EXECUTE) == FluidType.BUCKET_VOLUME;
     }
 
-    /** Future crafting can drain only after all ingredients have been validated. */
+    /** Drain a whole amount, or leave the tank unchanged. */
     boolean drainWater(int amount, boolean simulate) {
         if (level == null || level.isClientSide || amount <= 0) {
             return false;
@@ -103,6 +108,38 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
             water.drain(amount, FluidAction.EXECUTE);
         }
         return true;
+    }
+
+    GuildAlchemyCrafting.Status craftingStatus(int recipe, int grade) {
+        return GuildAlchemyCrafting.status(GuildAlchemyCrafting.plan(recipe, grade), inventory, waterAmount());
+    }
+
+    /** Called on the server thread. One accepted request creates exactly one potion. */
+    boolean craft(int recipe, int grade) {
+        if (level == null || level.isClientSide || isRemoved() || crafting
+                || level.getBlockEntity(worldPosition) != this) return false;
+        crafting = true;
+        try {
+            GuildAlchemyCrafting.Plan plan = GuildAlchemyCrafting.plan(recipe, grade);
+            if (GuildAlchemyCrafting.status(plan, inventory, waterAmount()) != GuildAlchemyCrafting.Status.READY) {
+                return false;
+            }
+            ItemStack[] remaining = new ItemStack[plan.ingredients().length];
+            for (int i = 0; i < remaining.length; i++) {
+                remaining[i] = inventory.getStackInSlot(i).copy();
+                remaining[i].shrink(plan.ingredients()[i].getCount());
+            }
+            ItemStack existing = inventory.getStackInSlot(OUTPUT_SLOT);
+            ItemStack result = existing.isEmpty() ? plan.potion().copy() : existing.copyWithCount(existing.getCount() + 1);
+            if (!drainWater(plan.water(), false)) return false;
+            for (int i = 0; i < remaining.length; i++) inventory.setStackInSlot(i, remaining[i]);
+            inventory.setStackInSlot(OUTPUT_SLOT, result);
+            // Publish only after water, all ingredients and the output have been committed.
+            publishWaterChange();
+            return true;
+        } finally {
+            crafting = false;
+        }
     }
 
     void dropInventory() {
