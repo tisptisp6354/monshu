@@ -1,8 +1,11 @@
 package com.farmrpg.jobs;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -35,6 +38,16 @@ public final class ModItems {
         return ITEMS.register(name, () -> new MoonlightHerbItem(block.get(), new Item.Properties()));
     }
 
+    private static void addHerbGrades(BuildCreativeModeTabContentsEvent event, MoonlightHerbItem herb) {
+        for (HerbGrade grade : HerbGrade.values()) {
+            ItemStack stack = new ItemStack(herb);
+            if (grade.modelId() != 0) {
+                stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(grade.modelId()));
+            }
+            event.accept(stack);
+        }
+    }
+
     static {
         // Resolve the former placeable-item ID to the single herb item when loading older saves.
         ITEMS.addAlias(
@@ -59,14 +72,14 @@ public final class ModItems {
             }
         }
         if (event.getTabKey().equals(CreativeModeTabs.INGREDIENTS)) {
-            event.accept(MOONLIGHT_HERB_ITEM.get());
-            event.accept(LIFE_HERB_ITEM.get());
-            event.accept(SUN_HERB_ITEM.get());
-            event.accept(FROST_HERB_ITEM.get());
-            event.accept(POISON_MIST_HERB_ITEM.get());
-            event.accept(VITALITY_HERB_ITEM.get());
-            event.accept(GALE_HERB_ITEM.get());
-            event.accept(STAR_MOSS_ITEM.get());
+            addHerbGrades(event, MOONLIGHT_HERB_ITEM.get());
+            addHerbGrades(event, LIFE_HERB_ITEM.get());
+            addHerbGrades(event, SUN_HERB_ITEM.get());
+            addHerbGrades(event, FROST_HERB_ITEM.get());
+            addHerbGrades(event, POISON_MIST_HERB_ITEM.get());
+            addHerbGrades(event, VITALITY_HERB_ITEM.get());
+            addHerbGrades(event, GALE_HERB_ITEM.get());
+            addHerbGrades(event, STAR_MOSS_ITEM.get());
         }
     }
 }
