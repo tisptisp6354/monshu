@@ -1,5 +1,6 @@
 package com.farmrpg.jobs;
 
+import java.util.function.IntSupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -114,29 +115,44 @@ public final class GuildAlchemyWorkbenchBlockEntity extends BlockEntity {
         return GuildAlchemyCrafting.status(GuildAlchemyCrafting.plan(recipe, grade), inventory, waterAmount());
     }
 
-    /** Called on the server thread. One accepted request creates exactly one potion. */
-    boolean craft(int recipe, int grade) {
+    /** Called on the server thread. Each eligible request receives one fresh random roll. */
+    GuildAlchemyCrafting.Outcome craft(int recipe, int grade) {
+        if (level == null) return GuildAlchemyCrafting.Outcome.REJECTED;
+        return craft(recipe, grade, () -> level.getRandom().nextInt(100));
+    }
+
+    // The injected roll lets deterministic tests cover both outcomes without changing server RNG.
+    GuildAlchemyCrafting.Outcome craft(int recipe, int grade, IntSupplier randomRoll) {
         if (level == null || level.isClientSide || isRemoved() || crafting
-                || level.getBlockEntity(worldPosition) != this) return false;
+                || level.getBlockEntity(worldPosition) != this) return GuildAlchemyCrafting.Outcome.REJECTED;
         crafting = true;
         try {
             GuildAlchemyCrafting.Plan plan = GuildAlchemyCrafting.plan(recipe, grade);
             if (GuildAlchemyCrafting.status(plan, inventory, waterAmount()) != GuildAlchemyCrafting.Status.READY) {
-                return false;
+                return GuildAlchemyCrafting.Outcome.REJECTED;
             }
+            boolean success = GuildAlchemyCrafting.succeeds(randomRoll.getAsInt(), plan.successChance());
             ItemStack[] remaining = new ItemStack[plan.ingredients().length];
             for (int i = 0; i < remaining.length; i++) {
-                remaining[i] = inventory.getStackInSlot(i).copy();
-                remaining[i].shrink(plan.ingredients()[i].getCount());
+                // Failure consumes only the two support herbs and the catalyst.
+                if (success || (i >= 1 && i <= 3)) {
+                    remaining[i] = inventory.getStackInSlot(i).copy();
+                    remaining[i].shrink(plan.ingredients()[i].getCount());
+                }
             }
-            ItemStack existing = inventory.getStackInSlot(OUTPUT_SLOT);
-            ItemStack result = existing.isEmpty() ? plan.potion().copy() : existing.copyWithCount(existing.getCount() + 1);
-            if (!drainWater(plan.water(), false)) return false;
-            for (int i = 0; i < remaining.length; i++) inventory.setStackInSlot(i, remaining[i]);
-            inventory.setStackInSlot(OUTPUT_SLOT, result);
+            ItemStack result = ItemStack.EMPTY;
+            if (success) {
+                ItemStack existing = inventory.getStackInSlot(OUTPUT_SLOT);
+                result = existing.isEmpty() ? plan.potion().copy() : existing.copyWithCount(existing.getCount() + 1);
+            }
+            if (!drainWater(plan.water(), false)) return GuildAlchemyCrafting.Outcome.REJECTED;
+            for (int i = 0; i < remaining.length; i++) {
+                if (remaining[i] != null) inventory.setStackInSlot(i, remaining[i]);
+            }
+            if (success) inventory.setStackInSlot(OUTPUT_SLOT, result);
             // Publish only after water, all ingredients and the output have been committed.
             publishWaterChange();
-            return true;
+            return success ? GuildAlchemyCrafting.Outcome.SUCCESS : GuildAlchemyCrafting.Outcome.FAILURE;
         } finally {
             crafting = false;
         }

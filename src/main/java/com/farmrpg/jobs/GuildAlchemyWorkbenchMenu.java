@@ -38,7 +38,10 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
     private static final int FIRST_COUNT = 3;
     private static final int WATER_COST = 7;
     private static final int CRAFT_STATUS = 8;
-    private static final int DATA_COUNT = 9;
+    private static final int SUCCESS_CHANCE = 9;
+    private static final int LAST_OUTCOME = 10;
+    private static final int ATTEMPT_SEQUENCE = 11;
+    private static final int DATA_COUNT = 12;
 
     private final ContainerData data;
     @Nullable private final GuildAlchemyWorkbenchBlockEntity workbench;
@@ -104,6 +107,9 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
     public int waterCost() { return data.get(WATER_COST); }
     public int craftStatus() { return data.get(CRAFT_STATUS); }
     public boolean canCraft() { return craftStatus() == GuildAlchemyCrafting.Status.READY.ordinal(); }
+    public int successChance() { return data.get(SUCCESS_CHANCE); }
+    public int lastOutcome() { return data.get(LAST_OUTCOME); }
+    public int attemptSequence() { return data.get(ATTEMPT_SEQUENCE); }
 
     @Override
     public boolean stillValid(Player player) {
@@ -126,9 +132,17 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
             return true;
         }
         if (id == CRAFT_BUTTON) {
-            if (!workbench.craft(selectedRecipe(), selectedGrade())) return false;
-            player.level().playSound(null, workbench.getBlockPos(), SoundEvents.BREWING_STAND_BREW,
-                    SoundSource.BLOCKS, 0.7F, 1.0F);
+            GuildAlchemyCrafting.Outcome outcome = workbench.craft(selectedRecipe(), selectedGrade());
+            if (outcome == GuildAlchemyCrafting.Outcome.REJECTED) return false;
+            data.set(LAST_OUTCOME, outcome.ordinal());
+            data.set(ATTEMPT_SEQUENCE, (data.get(ATTEMPT_SEQUENCE) + 1) & 0x7FFF);
+            if (outcome == GuildAlchemyCrafting.Outcome.SUCCESS) {
+                player.level().playSound(null, workbench.getBlockPos(), SoundEvents.BREWING_STAND_BREW,
+                        SoundSource.BLOCKS, 0.7F, 1.0F);
+            } else {
+                player.level().playSound(null, workbench.getBlockPos(), SoundEvents.FIRE_EXTINGUISH,
+                        SoundSource.BLOCKS, 0.45F, 1.1F);
+            }
             return true;
         }
         if (id != FILL_WATER_BUTTON) return false;
@@ -184,6 +198,8 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
         private final GuildAlchemyWorkbenchBlockEntity workbench;
         private int recipe;
         private int grade;
+        private int lastOutcome;
+        private int attemptSequence;
 
         private WorkbenchData(GuildAlchemyWorkbenchBlockEntity workbench) { this.workbench = workbench; }
         @Override public int get(int index) {
@@ -196,12 +212,17 @@ public final class GuildAlchemyWorkbenchMenu extends AbstractContainerMenu {
                 case FIRST_COUNT + 3 -> AlchemyCraftingSettings.catalystCount(HerbGrade.fromModelId(grade));
                 case WATER_COST -> AlchemyCraftingSettings.waterPerPotion();
                 case CRAFT_STATUS -> workbench.craftingStatus(recipe, grade).ordinal();
+                case SUCCESS_CHANCE -> AlchemyCraftingSettings.successChance(HerbGrade.fromModelId(grade));
+                case LAST_OUTCOME -> lastOutcome;
+                case ATTEMPT_SEQUENCE -> attemptSequence;
                 default -> 0;
             };
         }
         @Override public void set(int index, int value) {
             if (index == RECIPE && value >= 0 && value < 4) recipe = value;
             if (index == GRADE && value >= 0 && value < 4) grade = value;
+            if (index == LAST_OUTCOME && value >= 0 && value < GuildAlchemyCrafting.Outcome.values().length) lastOutcome = value;
+            if (index == ATTEMPT_SEQUENCE) attemptSequence = value & 0x7FFF;
         }
         @Override public int getCount() { return DATA_COUNT; }
     }

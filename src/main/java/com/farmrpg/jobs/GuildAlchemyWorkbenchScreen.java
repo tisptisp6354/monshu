@@ -31,11 +31,26 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
     private static final int GOLD = 0xFFFFD57A;
     private static final int WHITE = 0xFFFFF1D0;
     private boolean hasMaskedBackground;
+    private int observedAttempt;
+    private int visibleOutcome;
+    private int outcomeTicks;
 
     public GuildAlchemyWorkbenchScreen(GuildAlchemyWorkbenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageWidth = GuildAlchemyWorkbenchMenu.WIDTH;
         imageHeight = GuildAlchemyWorkbenchMenu.HEIGHT;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if (menu.attemptSequence() != observedAttempt) {
+            observedAttempt = menu.attemptSequence();
+            visibleOutcome = menu.lastOutcome();
+            outcomeTicks = 40;
+        } else if (outcomeTicks > 0) {
+            outcomeTicks--;
+        }
     }
 
     @Override
@@ -147,10 +162,22 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
             graphics.renderItemDecorations(font, ingredient, PREVIEW_X[i], PREVIEW_Y,
                     Integer.toString(ingredient.getCount()));
         }
-        String craftLabel = menu.canCraft() ? "screen.farmrpgjobs.alchemy.craft"
-                : "screen.farmrpgjobs.alchemy.craft_unavailable";
-        graphics.drawCenteredString(font, Component.translatable(craftLabel), 258, 113,
-                menu.canCraft() ? WHITE : 0xFFB7A8A0);
+        Component craftLabel;
+        int craftColor;
+        if (outcomeTicks > 0 && visibleOutcome == GuildAlchemyCrafting.Outcome.SUCCESS.ordinal()) {
+            craftLabel = Component.translatable("screen.farmrpgjobs.alchemy.craft_success");
+            craftColor = 0xFF80FF98;
+        } else if (outcomeTicks > 0 && visibleOutcome == GuildAlchemyCrafting.Outcome.FAILURE.ordinal()) {
+            craftLabel = Component.translatable("screen.farmrpgjobs.alchemy.craft_failure");
+            craftColor = 0xFFFF8C8C;
+        } else if (menu.craftStatus() == GuildAlchemyCrafting.Status.INVALID.ordinal()) {
+            craftLabel = Component.translatable("screen.farmrpgjobs.alchemy.craft_unavailable");
+            craftColor = 0xFFB7A8A0;
+        } else {
+            craftLabel = Component.translatable("screen.farmrpgjobs.alchemy.craft_chance", menu.successChance());
+            craftColor = menu.canCraft() ? WHITE : 0xFFB7A8A0;
+        }
+        graphics.drawCenteredString(font, craftLabel, 258, 113, craftColor);
     }
 
     private int validIngredientCount(int index, ItemStack expected, HerbGrade grade) {
@@ -193,7 +220,14 @@ public final class GuildAlchemyWorkbenchScreen extends AbstractContainerScreen<G
         } else if (inside(x, y, 185, 50, 18, 27)) {
             graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.water_cost", menu.waterCost()), mouseX, mouseY);
         } else if (inside(x, y, 224, 106, 68, 19)) {
-            graphics.renderTooltip(font, Component.translatable("screen.farmrpgjobs.alchemy.status." + menu.craftStatus()), mouseX, mouseY);
+            List<Component> tooltip = new ArrayList<>();
+            tooltip.add(Component.translatable("screen.farmrpgjobs.alchemy.status." + menu.craftStatus()));
+            if (menu.craftStatus() != GuildAlchemyCrafting.Status.INVALID.ordinal()) {
+                tooltip.add(Component.translatable("screen.farmrpgjobs.alchemy.chance_tooltip", menu.successChance()));
+                tooltip.add(Component.translatable("screen.farmrpgjobs.alchemy.failure_cost"));
+                tooltip.add(Component.translatable("screen.farmrpgjobs.alchemy.failure_keep"));
+            }
+            graphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
         }
     }
 
