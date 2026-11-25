@@ -143,31 +143,67 @@ public final class WorkbenchChanceGameTests {
             helper.assertTrue(bench.fillWaterBucket(), "Water fits");
             prepare(bench, 0, 3, 6);
             var menu = new GuildAlchemyWorkbenchMenu(80, player.getInventory(), bench);
+            var client = new GuildAlchemyWorkbenchMenu(80, player.getInventory());
+            menu.setSynchronizer(new net.minecraft.world.inventory.ContainerSynchronizer() {
+                @Override public void sendInitialData(net.minecraft.world.inventory.AbstractContainerMenu source,
+                        net.minecraft.core.NonNullList<ItemStack> stacks, ItemStack carried, int[] values) {
+                    for (int i = 0; i < values.length; i++) client.setData(i, values[i]);
+                }
+                @Override public void sendSlotChange(net.minecraft.world.inventory.AbstractContainerMenu source, int slot, ItemStack stack) {}
+                @Override public void sendCarriedChange(net.minecraft.world.inventory.AbstractContainerMenu source, ItemStack stack) {}
+                @Override public void sendDataChange(net.minecraft.world.inventory.AbstractContainerMenu source, int index, int value) {
+                    client.setData(index, value);
+                }
+            });
             player.containerMenu = menu;
             helper.assertTrue(menu.clickMenuButton(player, GuildAlchemyWorkbenchMenu.GRADE_BUTTON_BASE + 3), "Select heroic");
+            menu.broadcastChanges();
             helper.assertTrue(menu.successChance() == 0, "The GUI receives the server-configured chance");
+            helper.assertTrue(client.selectedGrade() == 3 && client.successChance() == 0,
+                    "Selection and chance are sent through the menu synchronizer");
             for (int i = 1; i <= 2; i++) {
                 helper.assertTrue(menu.clickMenuButton(player, GuildAlchemyWorkbenchMenu.CRAFT_BUTTON), "Failure is still an accepted attempt");
+                menu.broadcastChanges();
                 helper.assertTrue(menu.lastOutcome() == GuildAlchemyCrafting.Outcome.FAILURE.ordinal()
                         && menu.attemptSequence() == i, "Each failure is sent to the viewing player");
+                helper.assertTrue(client.lastOutcome() == GuildAlchemyCrafting.Outcome.FAILURE.ordinal()
+                        && client.attemptSequence() == i, "Each failure reaches the client menu");
             }
             helper.assertTrue(bench.waterAmount() == 500 && bench.inventory().getStackInSlot(0).getCount() == 6
                     && bench.inventory().getStackInSlot(4).getCount() == 6, "Repeated failures protect the main herb and bottles");
             chance.set(100);
             helper.assertTrue(menu.successChance() == 100, "Updated server chance is visible");
             helper.assertTrue(menu.clickMenuButton(player, GuildAlchemyWorkbenchMenu.CRAFT_BUTTON), "Next valid request can succeed");
+            menu.broadcastChanges();
             helper.assertTrue(menu.lastOutcome() == GuildAlchemyCrafting.Outcome.SUCCESS.ordinal()
                     && menu.attemptSequence() == 3 && bench.inventory().getStackInSlot(5).getCount() == 1,
                     "Success is sent and produces one potion");
-            var client = new GuildAlchemyWorkbenchMenu(81, player.getInventory());
-            client.setData(9, 55);
-            client.setData(10, GuildAlchemyCrafting.Outcome.FAILURE.ordinal());
-            client.setData(11, 2);
-            helper.assertTrue(client.successChance() == 55 && client.lastOutcome() == GuildAlchemyCrafting.Outcome.FAILURE.ordinal()
-                    && client.attemptSequence() == 2, "Client fields accept the synchronized chance and outcome");
+            helper.assertTrue(client.successChance() == 100 && client.lastOutcome() == GuildAlchemyCrafting.Outcome.SUCCESS.ordinal()
+                    && client.attemptSequence() == 3, "The changed chance and success reach the client menu");
         } finally {
             chance.set(old);
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = "workbench_test")
+    public static void oldConfigPreservesExistingValues(GameTestHelper helper) {
+        var old = com.electronwill.nightconfig.core.CommentedConfig.inMemory();
+        old.set("life_potion.common_seconds", 19);
+        old.set("alchemy_workbench.water_per_potion", 375);
+        old.set("alchemy_workbench.life.main_herb_count", 4);
+        old.set("alchemy_workbench.catalysts.heroic_count", 3);
+        AlchemyPotionSettings.SPEC.correct(old);
+        helper.assertTrue(Integer.valueOf(19).equals(old.get("life_potion.common_seconds"))
+                && Integer.valueOf(375).equals(old.get("alchemy_workbench.water_per_potion"))
+                && Integer.valueOf(4).equals(old.get("alchemy_workbench.life.main_herb_count"))
+                && Integer.valueOf(3).equals(old.get("alchemy_workbench.catalysts.heroic_count")),
+                "Existing valid effect and recipe settings are preserved");
+        helper.assertTrue(Integer.valueOf(100).equals(old.get("alchemy_workbench.success_chance_percent.common"))
+                && Integer.valueOf(90).equals(old.get("alchemy_workbench.success_chance_percent.advanced"))
+                && Integer.valueOf(75).equals(old.get("alchemy_workbench.success_chance_percent.rare"))
+                && Integer.valueOf(55).equals(old.get("alchemy_workbench.success_chance_percent.heroic")),
+                "Missing chances receive the agreed defaults");
         helper.succeed();
     }
 
