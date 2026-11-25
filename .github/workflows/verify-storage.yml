@@ -1,0 +1,22 @@
+name: Verify creative herb grades
+on:
+  push:
+    branches:
+      - 'verify-creative-herbs-1795590516943'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build mod
+        run: ./gradlew build --no-daemon --console=plain
+      - name: Prepare game-test server
+        run: |
+          mkdir -p run
+          printf 'eula=true\n' > run/eula.txt
+      - name: Test creative herbs and existing features
+        run: timeout 300s ./gradlew runGameTestServer --no-daemon --console=plain
